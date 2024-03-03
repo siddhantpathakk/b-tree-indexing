@@ -89,9 +89,9 @@ public class Database {
     }
 
     // bruteforce search, return number of block accesses
-    public int bruteForceSearch(float numVotes, float numVotes_upperBound) {
+    public int bruteForceSearch(int numVotes, int numVotes_upperBound) {
         Record rec;
-        float recFgPct;
+        int recNumVotes;
         int blkAccesses = 0;
         ArrayList<Record> res = new ArrayList<>();
         for (Integer blkPtr : this.filledBlocks) {
@@ -101,14 +101,14 @@ public class Database {
             
             for (int offset = 0; offset < blockSize; offset++) {
                 rec = block.getRecord(offset);
-                recFgPct = rec.getNumVotes();
-                if (recFgPct >= numVotes && recFgPct <= numVotes_upperBound) {
+                recNumVotes = rec.getNumVotes();
+                if (recNumVotes >= numVotes && recNumVotes <= numVotes_upperBound) {
                     res.add(rec);
                 }
             }
         }
         if (res.isEmpty()) {
-            System.out.printf("\nNo records within range [%.2f, %.2f] found in db", numVotes, numVotes_upperBound);
+            System.out.println("\n(Bruteforce) No records found");
         } else{
             System.out.printf("\n(Bruteforce) No. of records found: %d", res.size());
         }
