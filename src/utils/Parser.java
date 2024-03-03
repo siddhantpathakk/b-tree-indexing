@@ -24,7 +24,6 @@ public class Parser {
             String line;
             Database db = new Database(diskCapacity, BLOCK_SIZE);
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
-            // throw header away
             reader.readLine();
             int invalidDataCount = 0;
 
@@ -42,27 +41,29 @@ public class Parser {
                     bPlusTree.insertKeyAddrPair(key, addr); // do multiple inserts, another option is bulk loading
                 } catch (Exception e) { // handles empty cells + parse exception
                     invalidDataCount++;
+                    System.out.println("Invalid data found in tuple: " + line);
+                    break;
                 }
                 
             }
             reader.close();
             System.out.println(invalidDataCount + " tuples skipped due to invalid data");
             
-            System.out.println("Running experiment 1 only (please wait for 1-2s before each experiment executes)");
+            System.out.println("Running experiments 1-3 (please wait for 1-2s before each experiment executes)");
             try {
                 db.ex1();
                 TimeUnit.SECONDS.sleep(2);
-                // BPlusTree.ex2(bPlusTree);
-                // TimeUnit.SECONDS.sleep(2);
-                // BPlusTree.ex3(db, bPlusTree);
-                // TimeUnit.SECONDS.sleep(2);
+                BPlusTree.ex2(bPlusTree);
+                TimeUnit.SECONDS.sleep(2);
+                BPlusTree.ex3(db, bPlusTree);
+                TimeUnit.SECONDS.sleep(2);
                 // BPlusTree.ex4(db, bPlusTree);
                 // TimeUnit.SECONDS.sleep(2);
                 // bPlusTree.ex5(db, bPlusTree);
             } catch (InterruptedException e) {
                 System.out.println("User interrupted program, exiting run time");
             }
-            System.out.println("\n@@@@@ Execution complete @@@@@\n");
+            System.out.println("\n\n@@@@@ Execution complete @@@@@\n");
             
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,9 +71,9 @@ public class Parser {
     }
 
     public static Record parseTuple(String[] tuple) throws ParseException {
-        String tConst = tuple[1];
-        float averageRating = Float.parseFloat(tuple[2]);
-        int numVotes = Integer.parseInt(tuple[3]);
+        String tConst = tuple[0];
+        float averageRating = Float.parseFloat(tuple[1]);
+        int numVotes = Integer.parseInt(tuple[2]);
         return createRecord(tConst, averageRating, numVotes); 
     }
 

@@ -3,8 +3,9 @@ package components.index;
 import java.util.ArrayList;
 import java.util.List;
 import components.storage.Address;
-// import storageComponent.Record;
-// import storageComponent.Database;
+import components.storage.Record;
+import components.storage.Database;
+
 import utils.Parser;
 
 
@@ -461,66 +462,66 @@ public class BPlusTree {
         return count;
     }
 
-    // // -------------------------EXPERIMENT 2-------------------------
+    // -------------------------EXPERIMENT 2-------------------------
 
-    // public static void ex2(BPlusTree bPlusTree) {
-    //     System.out.println("\nEXPERIMENT 2: Build a B+Tree on FG_PCT_home by inserting the records sequentially:");
-    //     System.out.println("Parameter n: " + NODE_SIZE);
-    //     System.out.printf("No. of Nodes in B+ tree: %d\n", bPlusTree.countNodes(bPlusTree.getRoot()));
-    //     System.out.printf("No. of Levels in B+ tree: %d\n", bPlusTree.getDepth(bPlusTree.getRoot()));
-    //     System.out.println("Content of the root node: " + bPlusTree.getRoot().keys);
+    public static void ex2(BPlusTree bPlusTree) {
+        System.out.println("\nEXPERIMENT 2: Build a B+Tree on numVotes by inserting the records sequentially:");
+        System.out.println("Parameter n: " + NODE_SIZE);
+        System.out.printf("No. of Nodes in B+ tree: %d\n", bPlusTree.countNodes(bPlusTree.getRoot()));
+        System.out.printf("No. of Levels in B+ tree: %d\n", bPlusTree.getDepth(bPlusTree.getRoot()));
+        System.out.println("Content of the root node: " + bPlusTree.getRoot().keys);
 
-    //     // sanity check
-    //     // Node temp = bPlusTree.getRoot();
-    //     // while (!temp.keys.isEmpty()) {
-    //     //     System.out.println(temp.keys);
-    //     //     temp = ((InternalNode) temp).getChild(0);
-    //     // }
-    // }
+        // sanity check
+        // Node temp = bPlusTree.getRoot();
+        // while (!temp.keys.isEmpty()) {
+        //     System.out.println(temp.keys);
+        //     temp = ((InternalNode) temp).getChild(0);
+        // }
+    }
 
-    // private int getDepth(Node node) {
-    //     int level = 0;
-    //     while (!node.isLeaf()) {
-    //         node = ((InternalNode) node).getChild(0);
-    //         level++;
-    //     }
-    //     level++;
-    //     return level;
-    // }
+    private int getDepth(Node node) {
+        int level = 0;
+        while (!node.isLeaf()) {
+            node = ((InternalNode) node).getChild(0);
+            level++;
+        }
+        level++;
+        return level;
+    }
 
     // -------------------------EXPERIMENT 3-------------------------
 
-    // public static void ex3(Database db, BPlusTree bPlusTree) {
-    //     System.out.println("\nEXPERIMENT 3: Retrieve those records with the \"FG_PCT_home\" equal to 0.5:");
-    //     BPTHelper performance = new BPTHelper();
-    //     long startTime = System.nanoTime();
-    //     ArrayList<Address> addresses = bPlusTree.getAddresses(0.500f);
-    //     long endTime = System.nanoTime();
-    //     float totalFG3_PCT_home = 0;
-    //     int count = 0;
-    //     ArrayList<Record> res = new ArrayList<>();
-    //     if (addresses != null) {
-    //         for (Address address : addresses) {
-    //             Record rec = db.getRecord(address);
-    //             res.add(rec);
-    //             totalFG3_PCT_home += rec.getFg3PctHome();
-    //             count++;
-    //         }
-    //     }
+    public static void ex3(Database db, BPlusTree bPlusTree) {
+        System.out.println("\nEXPERIMENT 3: Retrieve those records with the \"numVotes\" equal to 500:");
+        BPTHelper performance = new BPTHelper();
+        long startTime = System.nanoTime();
+        ArrayList<Address> addresses = bPlusTree.getAddresses(0.500f);
+        long endTime = System.nanoTime();
+        float totalNumVotes = 0;
+        int count = 0;
+        ArrayList<Record> res = new ArrayList<>();
+        if (addresses != null) {
+            for (Address address : addresses) {
+                Record rec = db.getRecord(address);
+                res.add(rec);
+                totalNumVotes += rec.getNumVotes();
+                count++;
+            }
+        }
 
-    //     System.out.printf("No. of index nodes accessed by process: %d", performance.getNodeReads());
-    //     System.out.printf("\nNo. of data blocks accessed by process: %d", db.getBlockAccesses());
-    //     System.out.printf("\n(Index Search) No. of records found: %d", count);
-    //     System.out.printf("\nAverage of FG3_PCT_home of returned records: %.2f", count > 0 ? totalFG3_PCT_home/count : 0);
-    //     // running time = endTime - startTime (in nanoseconds)
-    //     System.out.printf("\n\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
-    //     // point 5: brute-force searching
-    //     startTime = System.nanoTime();
-    //     int blkAccesses = db.bruteForceSearch(0.5f, 0.5f);
-    //     endTime = System.nanoTime();
-    //     System.out.printf("\nNo. of data blocks accessed by bruteforce: %d", blkAccesses);
-    //     System.out.printf("\n\tRunning Time: %.3f ms", (endTime - startTime) / 1_000_000.0);
-    // }
+        System.out.printf("No. of index nodes accessed by process: %d", performance.getNodeReads());
+        System.out.printf("\nNo. of data blocks accessed by process: %d", db.getBlockAccesses());
+        System.out.printf("\n(Index Search) No. of records found: %d", count);
+        System.out.printf("\nAverage of NumVotes of returned records: %.2f", count > 0 ? totalNumVotes/count : 0);
+        // running time = endTime - startTime (in nanoseconds)
+        System.out.printf("\n\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
+        // point 5: brute-force searching
+        startTime = System.nanoTime();
+        int blkAccesses = db.bruteForceSearch(500, 500);
+        endTime = System.nanoTime();
+        System.out.printf("\nNo. of data blocks accessed by bruteforce: %d", blkAccesses);
+        System.out.printf("\n\tRunning Time: %.3f ms", (endTime - startTime) / 1_000_000.0);
+    }
 
 
     // // -------------------------EXPERIMENT 4-------------------------
