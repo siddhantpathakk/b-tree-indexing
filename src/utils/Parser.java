@@ -30,9 +30,9 @@ public class Parser {
             BPlusTree bPlusTree = new BPlusTree();
 
             while ((line = reader.readLine()) != null) {
-                counter++;
-                if (counter % 10000 == 0)
-                    System.out.println(counter + " data rows read");
+                // counter++;
+                // if (counter % 10000 == 0)
+                //     System.out.println(counter + " data rows read");
                 String[] tuple = line.split("\t");
                 try {
                     Record row = parseTuple(tuple);                
@@ -47,19 +47,30 @@ public class Parser {
                 
             }
             reader.close();
+            System.out.println("Total records read: " + db.getNumberOfRecords());
             System.out.println(invalidDataCount + " tuples skipped due to invalid data");
             
-            System.out.println("Running experiments 1-3 (please wait for 1-2s before each experiment executes)");
+            System.out.println("\nRunning experiments 1-3 (please wait for 1-2s before each experiment executes)");
             try {
                 db.ex1();
+                System.out.println("===================================");
                 TimeUnit.SECONDS.sleep(2);
+
                 BPlusTree.ex2(bPlusTree);
+                System.out.println("===================================");
                 TimeUnit.SECONDS.sleep(2);
+
                 BPlusTree.ex3(db, bPlusTree);
+                System.out.println("===================================");
                 TimeUnit.SECONDS.sleep(2);
-                // BPlusTree.ex4(db, bPlusTree);
-                // TimeUnit.SECONDS.sleep(2);
+
+                BPlusTree.ex4(db, bPlusTree);
+                TimeUnit.SECONDS.sleep(2);
+                System.out.println("===================================");
+
                 // bPlusTree.ex5(db, bPlusTree);
+                // System.out.println("===================================");
+
             } catch (InterruptedException e) {
                 System.out.println("User interrupted program, exiting run time");
             }

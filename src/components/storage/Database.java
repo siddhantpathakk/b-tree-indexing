@@ -91,7 +91,7 @@ public class Database {
     // bruteforce search, return number of block accesses
     public int bruteForceSearch(int numVotes, int numVotes_upperBound) {
         Record rec;
-        int recNumVotes;
+        float recNumVotes;
         int blkAccesses = 0;
         ArrayList<Record> res = new ArrayList<>();
         for (Integer blkPtr : this.filledBlocks) {

@@ -3,7 +3,7 @@ package components.storage;
 public class Record {
     private String tConst; // 10 bytes
     private float averageRating; // 4 bytes
-    private int numVotes; // 4 bytes
+    private float numVotes; // 4 bytes
 
     private static int RECORD_SIZE = 18;
 
@@ -33,7 +33,7 @@ public class Record {
         return averageRating;
     }
 
-    public int getNumVotes() {
+    public float getNumVotes() {
         return numVotes;
     }
 
