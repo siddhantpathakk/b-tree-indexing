@@ -529,7 +529,7 @@ public class BPlusTree {
         System.out.println("\n\nEXPERIMENT 4: Retrieve those records with 30,000 <= \"numVotes\" <= 40,000:");
         BPTHelper performance = new BPTHelper();
         long startTime = System.nanoTime();
-        ArrayList<Address> addresses = bPlusTree.getAddressesForKeysBetween(bPlusTree.getRoot(), 0.6f, 1f);
+        ArrayList<Address> addresses = bPlusTree.getAddressesForKeysBetween(bPlusTree.getRoot(), 30000, 40000);
         long endTime = System.nanoTime();
         double totalNumVotes = 0;
         int count = 0;
