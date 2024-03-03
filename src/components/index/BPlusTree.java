@@ -526,63 +526,62 @@ public class BPlusTree {
     // -------------------------EXPERIMENT 4-------------------------
 
     public static void ex4(Database db, BPlusTree bPlusTree) {
-        System.out.println("\n\nEXPERIMENT 4: Retrieve those records with 30,000 <= \"numVotes\" <= 40,000:");
-        BPTHelper performance = new BPTHelper();
-        long startTime = System.nanoTime();
-        ArrayList<Address> addresses = bPlusTree.getAddressesForKeysBetween(bPlusTree.getRoot(), 30000, 40000);
-        long endTime = System.nanoTime();
-        double totalNumVotes = 0;
-        int count = 0;
-        ArrayList<Record> res = new ArrayList<>();
-        if (addresses != null) {
-            for (Address address : addresses) {
-                Record rec = db.getRecord(address);
-                res.add(rec);
-                totalNumVotes += rec.getNumVotes();
-                count++;
-            }
-        }
-        System.out.printf("No. of index nodes accessed by process: %d", performance.getNodeReadsEx4());
-        System.out.printf("\nNo. of data blocks accessed by process: %d", db.getBlockAccesses());
-        System.out.printf("\n(Index Search) No. of records found: %d", count);
-        System.out.printf("\nAverage of numVotes of returned records: %.2f", count > 0 ? totalNumVotes/count : 0);
-        // running time = endTime - startTime (in nanoseconds)
-        System.out.printf("\n\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
-        // point 5 brute-force searching
-        startTime = System.nanoTime();
-        int blkAccesses = db.bruteForceSearch(30000,40000);
-        endTime = System.nanoTime();
-        endTime = System.nanoTime();
-        System.out.printf("\nNo. of data blocks accessed by bruteforce: %d", blkAccesses);
-        System.out.printf("\n\tRunning Time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
-    }
-
-    public ArrayList<Address> getAddressesForKeysBetween(Node node, float minKey, float maxKey) {
-        BPTHelper.addIndexNodeReads();
-        // traverse until leaf
-        if (!node.isLeaf()) {
-            int ptr = node.getIdxOfKey(minKey, true);
-            Node childNode = ((InternalNode) node).getChild(ptr);
-            return getAddressesForKeysBetween(childNode, minKey, maxKey);
-        } else {
-            ArrayList<Address> addresses = new ArrayList<>();
-            int ptr = node.getIdxOfKey(minKey, false);
-            LeafNode leafNode = (LeafNode) node;
-            while (true) {
-                if (ptr == leafNode.getKeyCount()) {
-                    if (leafNode.getRightSibling() == null) break;
-                    leafNode = (LeafNode) leafNode.getRightSibling();
-                    BPTHelper.addIndexNodeReads();
-                    ptr = 0;
+        System.out.println("\n\nEXPERIMENT 4: Retrieve those records with 30,000 >= \"numVotes\" <= 40,000:");
+            BPTHelper performance = new BPTHelper();
+            long startTime = System.nanoTime();
+            ArrayList<Address> addresses = bPlusTree.getAddressesForKeysBetween(bPlusTree.getRoot(), 30000, 40000);
+            long endTime = System.nanoTime();
+            double averageRating = 0;
+            int count = 0;
+            ArrayList<Record> res = new ArrayList<>();
+            if (addresses != null) {
+                for (Address address : addresses) {
+                    Record rec = db.getRecord(address);
+                    res.add(rec);
+                    averageRating += rec.getAverageRating();
+                    count++;
                 }
-                if (leafNode.getKeyAt(ptr) > maxKey) break;
-                Float key = leafNode.getKeyAt(ptr);
-                addresses.addAll(leafNode.getAddressesForKey(key));
-                ptr++;
             }
-            return (addresses.isEmpty() ? null : addresses);
+            System.out.printf("No. of index nodes accessed by process: %d", performance.getNodeReadsEx4());
+            System.out.printf("\nNo. of data blocks accessed by process: %d", db.getBlockAccesses());
+            System.out.printf("\n(Index Search) No. of records found: %d", count);
+            System.out.printf("\nAverage of NumVotes of returned records: %.2f", count > 0 ? averageRating/count : 0);
+            // running time = endTime - startTime (in nanoseconds)
+            System.out.printf("\n\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
+            // point 5 brute-force searching
+            startTime = System.nanoTime();
+            int blkAccesses = db.bruteForceSearch(30000,40000);
+            endTime = System.nanoTime();
+            System.out.printf("\nNo. of data blocks accessed by bruteforce: %d", blkAccesses);
+            System.out.printf("\n\tRunning Time: %.3f ms\n\n", (endTime - startTime) / 1_000_000.0);
         }
-    }
+        
+        public ArrayList<Address> getAddressesForKeysBetween(Node node, float minKey, float maxKey) {
+            BPTHelper.addIndexNodeReads();
+            // traverse until leaf
+            if (!node.isLeaf()) {
+                int ptr = node.getIdxOfKey(minKey, true);
+                Node childNode = ((InternalNode) node).getChild(ptr);
+                return getAddressesForKeysBetween(childNode, minKey, maxKey);
+            } else {
+                ArrayList<Address> addresses = new ArrayList<>();
+                int ptr = node.getIdxOfKey(minKey, false);
+                LeafNode leafNode = (LeafNode) node;
+                while (true) {
+                    if (ptr == leafNode.getKeyCount()) {
+                        if (leafNode.getRightSibling() == null) break;
+                        leafNode = (LeafNode) leafNode.getRightSibling();
+                        BPTHelper.addIndexNodeReads();
+                        ptr = 0;
+                    }
+                    if (leafNode.getKeyAt(ptr) > maxKey) break;
+                    Float key = leafNode.getKeyAt(ptr);
+                    addresses.addAll(leafNode.getAddressesForKey(key));
+                    ptr++;
+                }
+                return (addresses.isEmpty() ? null : addresses);
+            }
+        }
 
     // -------------------------EXPERIMENT 5-------------------------
     
