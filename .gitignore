@@ -53,8 +53,14 @@ dkms.conf
 
 .DS_Store
 main
-data
+
 outputs
 outputs_*
 LICENSE
 .editorconfig
+.vscode
+
+*.class
+.DS_Store
+
+reference
