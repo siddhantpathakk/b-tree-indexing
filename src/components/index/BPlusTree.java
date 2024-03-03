@@ -584,59 +584,59 @@ public class BPlusTree {
         }
     }
 
-    // // -------------------------EXPERIMENT 5-------------------------
+    // -------------------------EXPERIMENT 5-------------------------
     
-    // public static void ex5(Database db, BPlusTree bPlusTree) {
-    //     System.out.println("\n\nEXPERIMENT 5: Delete those records with \"FG_PCT_home\" <= 0.35:");
-    //     long startTime = System.nanoTime();
-    //     ArrayList<Float> keysToRemove = bPlusTree.ex5Helper(bPlusTree.getRoot(), Float.NEGATIVE_INFINITY, 0.35f);
-    //     ArrayList<Address> addressesToRemove = new ArrayList<Address>();
-    //     // There is a more efficient way to be mentioned in report
-    //     for (Float key : keysToRemove) {
-    //         addressesToRemove.addAll(bPlusTree.deleteKey(key));
-    //     }
-    //     System.out.printf("No. of records to delete: %d\n", addressesToRemove.size());
-    //     // db.deleteRecord(addressesToRemove); Commented out to show a fair trade off with second part where deletion is not performed
-    //     long endTime = System.nanoTime();
-    //     System.out.printf("No. of Nodes in updated B+ tree: %d\n", bPlusTree.countNodes(bPlusTree.getRoot()));
-    //     System.out.printf("No. of Levels in updated B+ tree: %d\n", bPlusTree.getDepth(bPlusTree.getRoot()));
-    //     System.out.printf("\nContent of the root node of the updated B+ tree(only the keys): %s\n", BPlusTree.getRoot().keys);
-    //     System.out.printf("\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
+    public static void ex5(Database db, BPlusTree bPlusTree) {
+        System.out.println("\n\nEXPERIMENT 5: Delete those records with \"numVotes\" = 1,000:");
+        long startTime = System.nanoTime();
+        ArrayList<Float> keysToRemove = bPlusTree.ex5Helper(bPlusTree.getRoot(), 1000, 1000);
+        ArrayList<Address> addressesToRemove = new ArrayList<Address>();
+        // There is a more efficient way to be mentioned in report
+        for (Float key : keysToRemove) {
+            addressesToRemove.addAll(bPlusTree.deleteKey(key));
+        }
+        System.out.printf("No. of records to delete: %d\n", addressesToRemove.size());
+        // db.deleteRecord(addressesToRemove); Commented out to show a fair trade off with second part where deletion is not performed
+        long endTime = System.nanoTime();
+        System.out.printf("No. of Nodes in updated B+ tree: %d\n", bPlusTree.countNodes(bPlusTree.getRoot()));
+        System.out.printf("No. of Levels in updated B+ tree: %d\n", bPlusTree.getDepth(bPlusTree.getRoot()));
+        System.out.printf("\nContent of the root node of the updated B+ tree(only the keys): %s\n", BPlusTree.getRoot().keys);
+        System.out.printf("\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
 
-    //     System.out.print("\nBrute-force range deletion:");
-    //     startTime = System.nanoTime();
-    //     int bruteForceAccessCount = db.bruteForceSearch(0.0f, 0.35f);
-    //     endTime = System.nanoTime();
-    //     System.out.printf("\nNumber of data blocks that would be accessed by a brute-force: %d\n", bruteForceAccessCount);
-    //     System.out.printf("\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
-    // }
+        System.out.print("\nBrute-force range deletion:");
+        startTime = System.nanoTime();
+        int bruteForceAccessCount = db.bruteForceSearch(1000, 1000);
+        endTime = System.nanoTime();
+        System.out.printf("\nNumber of data blocks that would be accessed by a brute-force: %d\n", bruteForceAccessCount);
+        System.out.printf("\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
+    }
 
-    // public static ArrayList<Float> ex5Helper(Node node, float lowerBound, float upperBound) {
-    //     ArrayList<Float> keysToRemove = new ArrayList<Float>();
-    //     // go all the way to the left
-    //     while (!node.isLeaf()) {
-    //         node = ((InternalNode) node).getChild(0);
-    //     }
-    //     LeafNode leafNode = (LeafNode) (Node) node;
-    //     boolean done = false;
-    //     int pointer = 0;
-    //     while (!done && leafNode != null) {
-    //         // System.out.println(leafNode.keys);
-    //         while (pointer < leafNode.getKeyCount()) {
-    //             Float key = leafNode.getKeyAt(pointer);
-    //             pointer += 1;
-    //             if (key >= lowerBound && key <= upperBound) {
-    //                 keysToRemove.add(key);
-    //             } else if (key < lowerBound) {
-    //                 pointer += 1;
-    //             } else if (key > upperBound) {
-    //                 done = true;
-    //             }
-    //         }
-    //         pointer = 0;
-    //         leafNode = leafNode.getRightSibling();
-    //     }
-    //     System.out.printf("No. of keys to delete (not records): %d\n", keysToRemove.size());
-    //     return keysToRemove;
-    // }
+    public static ArrayList<Float> ex5Helper(Node node, float lowerBound, float upperBound) {
+        ArrayList<Float> keysToRemove = new ArrayList<Float>();
+        // go all the way to the left
+        while (!node.isLeaf()) {
+            node = ((InternalNode) node).getChild(0);
+        }
+        LeafNode leafNode = (LeafNode) (Node) node;
+        boolean done = false;
+        int pointer = 0;
+        while (!done && leafNode != null) {
+            // System.out.println(leafNode.keys);
+            while (pointer < leafNode.getKeyCount()) {
+                Float key = leafNode.getKeyAt(pointer);
+                pointer += 1;
+                if (key >= lowerBound && key <= upperBound) {
+                    keysToRemove.add(key);
+                } else if (key < lowerBound) {
+                    pointer += 1;
+                } else if (key > upperBound) {
+                    done = true;
+                }
+            }
+            pointer = 0;
+            leafNode = leafNode.getRightSibling();
+        }
+        System.out.printf("No. of keys to delete (not records): %d\n", keysToRemove.size());
+        return keysToRemove;
+    }
 }

@@ -68,8 +68,8 @@ public class Parser {
                 TimeUnit.SECONDS.sleep(2);
                 System.out.println("===================================");
 
-                // bPlusTree.ex5(db, bPlusTree);
-                // System.out.println("===================================");
+                bPlusTree.ex5(db, bPlusTree);
+                System.out.println("===================================");
 
             } catch (InterruptedException e) {
                 System.out.println("User interrupted program, exiting run time");
