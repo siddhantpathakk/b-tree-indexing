@@ -11,7 +11,7 @@ public class Main {
 
         String separator = System.getProperty("file.separator");
         String filePath = new File("").getAbsolutePath();
-        filePath = filePath.concat(separator + "DBSP" + separator + "project1" + separator + "games.txt");
+        filePath = filePath.concat(separator + "data" + separator + "data.tsv");
 
         File file = new File(String.valueOf(filePath));
         if (file.exists()) {
@@ -20,7 +20,7 @@ public class Main {
             Parser.readTXTFile(String.valueOf(filePath), diskSize);
         } else if (!file.exists()) {
             Scanner sc = new Scanner(System.in);
-            System.out.print("Default file path failed! Please input the absolute file path of games.txt: ");
+            System.out.print("Default file path failed! Please input the absolute file path of data.tsv: ");
             filePath = sc.nextLine();
             File newFileCheck = new File(String.valueOf(filePath));
             if (newFileCheck.exists()) {
@@ -28,6 +28,7 @@ public class Main {
                 int diskSize = DEFAULT_MAX_DISK_CAPACITY;
                 Parser.readTXTFile(String.valueOf(filePath), diskSize);
             }
+            sc.close();
         } else {
             throw new FileNotFoundException("File does not exist!");
         }
