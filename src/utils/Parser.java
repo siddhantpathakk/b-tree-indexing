@@ -50,7 +50,7 @@ public class Parser {
             System.out.println("Total records read: " + db.getNumberOfRecords());
             System.out.println(invalidDataCount + " tuples skipped due to invalid data");
             
-            System.out.println("\nRunning experiments 1-4 (please wait for 1-2s before each experiment executes)");
+            System.out.println("\nRunning experiments 1-5 (please wait for 1-2s before each experiment executes)");
             try {
                 db.ex1();
                 System.out.println("===================================");
@@ -69,7 +69,6 @@ public class Parser {
                 System.out.println("===================================");
 
                 bPlusTree.ex5(db, bPlusTree);
-                System.out.println("===================================");
 
             } catch (InterruptedException e) {
                 System.out.println("User interrupted program, exiting run time");

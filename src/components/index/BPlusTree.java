@@ -81,8 +81,10 @@ public class BPlusTree {
 
     // delete node and return addresses to be removed
     public ArrayList<Address> deleteKey(Float key) {
-        Float lowerbound = checkForLowerbound(key);
-        return (deleteKeyRecursive(rootNode, null, -1, -1, key, lowerbound));
+        // System.out.println("Entering deleteKey function");
+        // Float lowerbound = checkForLowerbound(key);
+        // System.out.println("Lowerbound: " + lowerbound);
+        return (deleteKeyRecursive(rootNode, null, -1, -1, key, key));
     }
 
     // handles an invalid node type (wrapper function)
@@ -116,7 +118,7 @@ public class BPlusTree {
 
 
     private Float checkForLowerbound(Float key) {
-
+        System.out.println("Entering checkForLowerbound function");
         InternalNode node = (InternalNode) rootNode;
         Node targetNode = node;
         boolean found = false;
@@ -131,11 +133,12 @@ public class BPlusTree {
         if (!found && key < node.getKeyAt(0)) {
             targetNode = ((InternalNode) node).getChild(0);
         }
-
+        System.out.println("found the largest key in node smaller than key");
         // loop till get leftmost key
         while (!node.getChild(0).isLeaf()) {
             targetNode = ((InternalNode) node).getChild(0);
         }
+        System.out.println("looped completely till found leftmost key");
 
         if (targetNode.isLeaf()) {
             return targetNode.getFirstKey();
@@ -544,10 +547,10 @@ public class BPlusTree {
             }
             System.out.printf("No. of index nodes accessed by process: %d", performance.getNodeReadsEx4());
             System.out.printf("\nNo. of data blocks accessed by process: %d", db.getBlockAccesses());
-            System.out.printf("\n(Index Search) No. of records found: %d", count);
-            System.out.printf("\nAverage of NumVotes of returned records: %.2f", count > 0 ? averageRating/count : 0);
+            System.out.printf("\n\n(Index Search) No. of records found: %d", count);
+            System.out.printf("\nAverage of averageRatings of returned records: %.2f", count > 0 ? averageRating/count : 0);
             // running time = endTime - startTime (in nanoseconds)
-            System.out.printf("\n\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
+            System.out.printf("\n\tRunning time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
             // point 5 brute-force searching
             startTime = System.nanoTime();
             int blkAccesses = db.bruteForceSearch(30000,40000);
@@ -591,23 +594,25 @@ public class BPlusTree {
         ArrayList<Float> keysToRemove = bPlusTree.ex5Helper(bPlusTree.getRoot(), 1000, 1000);
         ArrayList<Address> addressesToRemove = new ArrayList<Address>();
         // There is a more efficient way to be mentioned in report
+        // System.out.println("Entering for loop");
         for (Float key : keysToRemove) {
             addressesToRemove.addAll(bPlusTree.deleteKey(key));
         }
+        // System.out.println("Exiting for loop");
         System.out.printf("No. of records to delete: %d\n", addressesToRemove.size());
-        // db.deleteRecord(addressesToRemove); Commented out to show a fair trade off with second part where deletion is not performed
+        // db.deleteRecord(addressesToRemove); // Commented out to show a fair trade off with second part where deletion is not performed
         long endTime = System.nanoTime();
         System.out.printf("No. of Nodes in updated B+ tree: %d\n", bPlusTree.countNodes(bPlusTree.getRoot()));
         System.out.printf("No. of Levels in updated B+ tree: %d\n", bPlusTree.getDepth(bPlusTree.getRoot()));
         System.out.printf("\nContent of the root node of the updated B+ tree(only the keys): %s\n", BPlusTree.getRoot().keys);
         System.out.printf("\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
 
-        System.out.print("\nBrute-force range deletion:");
+        System.out.print("\n\nBrute-force range deletion:");
         startTime = System.nanoTime();
         int bruteForceAccessCount = db.bruteForceSearch(1000, 1000);
         endTime = System.nanoTime();
         System.out.printf("\nNumber of data blocks that would be accessed by a brute-force: %d\n", bruteForceAccessCount);
-        System.out.printf("\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
+        System.out.printf("\tRunning time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
     }
 
     public static ArrayList<Float> ex5Helper(Node node, float lowerBound, float upperBound) {
