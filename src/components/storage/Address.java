@@ -1,4 +1,4 @@
-package storageComponent;
+package components.storage;
 
 
 public class Address {

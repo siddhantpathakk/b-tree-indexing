@@ -1,4 +1,4 @@
-package storageComponent;
+package components.storage;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -89,7 +89,7 @@ public class Database {
     }
 
     // bruteforce search, return number of block accesses
-    public int bruteForceSearch(float fg_pct_home, float fg_pct_home_upper_bound) {
+    public int bruteForceSearch(float numVotes, float numVotes_upperBound) {
         Record rec;
         float recFgPct;
         int blkAccesses = 0;
@@ -101,22 +101,24 @@ public class Database {
             
             for (int offset = 0; offset < blockSize; offset++) {
                 rec = block.getRecord(offset);
-                recFgPct = rec.getFgPctHome();
-                if (recFgPct >= fg_pct_home && recFgPct <= fg_pct_home_upper_bound) {
+                recFgPct = rec.getNumVotes();
+                if (recFgPct >= numVotes && recFgPct <= numVotes_upperBound) {
                     res.add(rec);
                 }
             }
         }
         if (res.isEmpty()) {
-            System.out.printf("\nNo records within range [%.2f, %.2f] found in db", fg_pct_home, fg_pct_home_upper_bound);
+            System.out.printf("\nNo records within range [%.2f, %.2f] found in db", numVotes, numVotes_upperBound);
         } else{
             System.out.printf("\n(Bruteforce) No. of records found: %d", res.size());
         }
         return blkAccesses;
     }
 
+
+
     public void ex1() {
-        System.out.println("\nEXPERIMENT 1: store the data from games.txt on the disk and report statistics:");
+        System.out.println("\nEXPERIMENT 1: store the data from data.tsv on the disk and report statistics:");
         System.out.printf("Number of records: %d\n", this.getNumberOfRecords());
         System.out.println(String.format("Size of record: %d Bytes", Record.getRecordSize()));
         System.out.printf("Number of records stored in a block: %d\n", Block.getmaxRecordCount());
