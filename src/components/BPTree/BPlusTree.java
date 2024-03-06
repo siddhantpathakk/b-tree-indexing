@@ -1,6 +1,7 @@
 package components.BPTree;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import components.DB.Address;
@@ -11,9 +12,9 @@ import utils.Reader;
 
 public class BPlusTree {
 
-    static final int NODE_SIZE = (Reader.SizeofBlock-Reader.PointerSize)
+    public static final int SizeofNode = (Reader.SizeofBlock-Reader.PointerSize)
     /(Reader.PointerSize+Reader.KeySize);
-    static Node rootNode;
+    public static Node rootNode;
     Node nodeToInsertTo;
 
     public BPlusTree() {
@@ -189,8 +190,7 @@ public class BPlusTree {
             addressesToDel = deleteKeyRecursive(next, nonLeafNode, ptrIdx, keyIdx, key, lowerbound);
         }
 
-        if (node.isUnderUtilized(NODE_SIZE)) {
-            // System.out.println("NODE UNU");
+        if (node.isUnderUtilized(SizeofNode)) {
             handleInvalidTree(node, parent, parentPointerIndex, parentKeyIndex);
         }
         
@@ -221,15 +221,15 @@ public class BPlusTree {
         // get right sibling
         LeafNode rightSibling = (LeafNode) underUtilizedLeaf.getRightSibling(); 
         // move one key from sibling to target
-        if (leftSibling != null && leftSibling.canDonate(NODE_SIZE)) {
+        if (leftSibling != null && leftSibling.canDonate(SizeofNode)) {
             moveOneKeyLeafNode(leftSibling, underUtilizedLeaf, true, parent, parentKeyIndex);
-        } else if (rightSibling != null && rightSibling.canDonate(NODE_SIZE)) {
+        } else if (rightSibling != null && rightSibling.canDonate(SizeofNode)) {
             moveOneKeyLeafNode(rightSibling, underUtilizedLeaf, false, parent, parentKeyIndex + 1);
 
-        // cant' donate, need to merge, check if left/right + self size <= NODE_SIZE, then see if we parent can handle a decrement of children
-        } else if (leftSibling != null && (leftSibling.getKeyCount() + underUtilizedLeaf.getKeyCount()) <= NODE_SIZE) {
+        // cant' donate, need to merge, check if left/right + self size <= sizeofnode, then see if we parent can handle a decrement of children
+        } else if (leftSibling != null && (leftSibling.getKeyCount() + underUtilizedLeaf.getKeyCount()) <= SizeofNode) {
             mergeLeafNodes(leftSibling, underUtilizedLeaf, parent, parentPointerIndex, parentKeyIndex, false);
-        } else if (rightSibling != null && (rightSibling.getKeyCount() + underUtilizedLeaf.getKeyCount()) <= NODE_SIZE) {
+        } else if (rightSibling != null && (rightSibling.getKeyCount() + underUtilizedLeaf.getKeyCount()) <= SizeofNode) {
             mergeLeafNodes(underUtilizedLeaf, rightSibling, parent, parentPointerIndex + 1, parentKeyIndex + 1, true);
         }
     }
@@ -260,15 +260,15 @@ public class BPlusTree {
             throw new IllegalStateException("Both leftInNodeSibling and rightInNodeSibling is null for " + underUtilizedNode);
 
         // move one key from sibling to target node, prioritise left        
-        if (leftInNodeSibling != null && leftInNodeSibling.canDonate(NODE_SIZE)) {
+        if (leftInNodeSibling != null && leftInNodeSibling.canDonate(SizeofNode)) {
             moveOneKeyInternalNode(leftInNodeSibling, (InternalNode) underUtilizedInternalNode, true, parent, parentKeyIndex);
-        } else if (rightInNodeSibling != null && rightInNodeSibling.canDonate(NODE_SIZE)) {
+        } else if (rightInNodeSibling != null && rightInNodeSibling.canDonate(SizeofNode)) {
             moveOneKeyInternalNode(rightInNodeSibling, (InternalNode) underUtilizedInternalNode, false, parent, parentKeyIndex + 1);
         
             // if cant donate we check if can merge
-        } else if (leftInNodeSibling != null && (underUtilizedInternalNode.getKeyCount() + leftInNodeSibling.getKeyCount()) <= NODE_SIZE) {
+        } else if (leftInNodeSibling != null && (underUtilizedInternalNode.getKeyCount() + leftInNodeSibling.getKeyCount()) <= SizeofNode) {
             mergeInternalNodes(leftInNodeSibling, (InternalNode) underUtilizedInternalNode, parent, parentPointerIndex, parentKeyIndex, true);
-        } else if (rightInNodeSibling != null && (underUtilizedInternalNode.getKeyCount() + rightInNodeSibling.getKeyCount()) <= NODE_SIZE) {
+        } else if (rightInNodeSibling != null && (underUtilizedInternalNode.getKeyCount() + rightInNodeSibling.getKeyCount()) <= SizeofNode) {
             mergeInternalNodes((InternalNode) underUtilizedInternalNode, rightInNodeSibling, parent, parentPointerIndex + 1, parentKeyIndex + 1, false);
         }
     }
@@ -439,7 +439,7 @@ public class BPlusTree {
     }
 
     public ArrayList<Address> searchValue(Node node, Float key) {
-        BPTHelper.addNodeReads();
+        BPTFunctions.addNodeReads();
         if (node.isLeaf()) {
             int ptrIdx = node.getIdxOfKey(key, false);
             if (ptrIdx >= 0 && ptrIdx < node.getKeyCount() && key.equals(node.getKeyAt(ptrIdx))) {
@@ -470,7 +470,7 @@ public class BPlusTree {
 
     public static void ex2(BPlusTree bPlusTree) {
         System.out.println("\nEXPERIMENT 2: Build a B+Tree on numVotes by inserting the records sequentially:");
-        System.out.println("Parameter n: " + NODE_SIZE);
+        System.out.println("Parameter n: " + SizeofNode);
         System.out.printf("No. of Nodes in B+ tree: %d\n", bPlusTree.countNodes(bPlusTree.getRoot()));
         System.out.printf("No. of Levels in B+ tree: %d\n", bPlusTree.getDepth(bPlusTree.getRoot()));
         System.out.println("Content of the root node: " + bPlusTree.getRoot().keys + "\n");
@@ -483,7 +483,7 @@ public class BPlusTree {
         // }
     }
 
-    private int getDepth(Node node) {
+    public int getDepth(Node node) {
         int level = 0;
         while (!node.isLeaf()) {
             node = ((InternalNode) node).getChild(0);
@@ -497,7 +497,7 @@ public class BPlusTree {
 
     public static void ex3(Database db, BPlusTree bPlusTree) {
         System.out.println("\nEXPERIMENT 3: Retrieve those records with the \"numVotes\" equal to 500:");
-        BPTHelper performance = new BPTHelper();
+        BPTFunctions performance = new BPTFunctions();
         long startTime = System.nanoTime();
         ArrayList<Address> addresses = bPlusTree.getAddresses((float) 500);
         long endTime = System.nanoTime();
@@ -531,7 +531,7 @@ public class BPlusTree {
 
     public static void ex4(Database db, BPlusTree bPlusTree) {
         System.out.println("\n\nEXPERIMENT 4: Retrieve those records with 30,000 >= \"numVotes\" <= 40,000:");
-            BPTHelper performance = new BPTHelper();
+            BPTFunctions performance = new BPTFunctions();
             long startTime = System.nanoTime();
             ArrayList<Address> addresses = bPlusTree.getAddressesForKeysBetween(bPlusTree.getRoot(), 30000, 40000);
             long endTime = System.nanoTime();
@@ -561,7 +561,7 @@ public class BPlusTree {
         }
         
         public ArrayList<Address> getAddressesForKeysBetween(Node node, float minKey, float maxKey) {
-            BPTHelper.addIndexNodeReads();
+            BPTFunctions.addIndexNodeReads();
             // traverse until leaf
             if (!node.isLeaf()) {
                 int ptr = node.getIdxOfKey(minKey, true);
@@ -575,7 +575,7 @@ public class BPlusTree {
                     if (ptr == leafNode.getKeyCount()) {
                         if (leafNode.getRightSibling() == null) break;
                         leafNode = (LeafNode) leafNode.getRightSibling();
-                        BPTHelper.addIndexNodeReads();
+                        BPTFunctions.addIndexNodeReads();
                         ptr = 0;
                     }
                     if (leafNode.getKeyAt(ptr) > maxKey) break;
@@ -643,5 +643,11 @@ public class BPlusTree {
         }
         System.out.printf("No. of keys to delete (not records): %d\n", keysToRemove.size());
         return keysToRemove;
+    }
+
+    public Collection<? extends Address> removeKeys(Node rootNode2, Object object, int i, int j, Float key,
+            Float key2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'removeKeys'");
     }
 }

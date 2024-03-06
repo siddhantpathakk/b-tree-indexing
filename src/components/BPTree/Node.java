@@ -13,7 +13,7 @@ public class Node {
 
     private int minLeafNodeSize;
     private int minInternalNodeSize;
-    static final int NODE_SIZE = BPlusTree.NODE_SIZE;
+    static final int SizeofNode = BPlusTree.SizeofNode;
     private boolean isLeaf;
     private boolean isRoot;
     private InternalNode parent;
@@ -25,8 +25,8 @@ public class Node {
         this.rootNode = BPlusTree.getRoot();
         this.isLeaf = false;
         this.isRoot = false;
-        this.minLeafNodeSize = (NODE_SIZE + 1) / 2;
-        this.minInternalNodeSize = NODE_SIZE / 2;
+        this.minLeafNodeSize = (SizeofNode + 1) / 2;
+        this.minInternalNodeSize = SizeofNode / 2;
     }
 
     public void removeLastKey() {
@@ -134,7 +134,7 @@ public class Node {
 
         newNode.setParent(this.getParent());
 
-        if (this.getParent().getKeyCount() > NODE_SIZE) {
+        if (this.getParent().getKeyCount() > SizeofNode) {
             this.getParent().splitInternalNode();
         }
     }
@@ -148,7 +148,7 @@ public class Node {
         // if parent is present, add to parent, split if necessary
         if (this.getParent() != null) {
             this.insertNewNodeToParent(newNode);
-            if (this.getParent().getKeyCount() > NODE_SIZE) {
+            if (this.getParent().getKeyCount() > SizeofNode) {
                 this.getParent().splitInternalNode();
             }
         } else {
@@ -169,7 +169,7 @@ public class Node {
             // insert this node's first key to parent
             insertKeyInOrder(this.getParent().keys, sibling.getKeyAt(0));
             sibling.keys.remove(0);
-            if (this.getParent().getKeyCount() > NODE_SIZE) {
+            if (this.getParent().getKeyCount() > SizeofNode) {
                 this.getParent().splitInternalNode();
             }
         } else {
@@ -315,7 +315,7 @@ public class Node {
         ((LeafNode) this).keyAddrMap.put(key, ((LeafNode) this).addresses);
 
         // moves the remaining keys into a sibling node so that current node has the  min required number of keys
-        int n = NODE_SIZE - minLeafNodeSize + 1;
+        int n = SizeofNode - minLeafNodeSize + 1;
         int i = 0;
         Float fromKey = 0.0f;
 

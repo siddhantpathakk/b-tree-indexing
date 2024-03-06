@@ -29,7 +29,7 @@ public class LeafNode extends Node {
     }
 
     public void addRecord(Float key, Address addr) {
-        int n = NODE_SIZE;
+        int n = SizeofNode;
 
         // new node (no map)
         if (this.keys == null) {

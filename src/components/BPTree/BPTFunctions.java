@@ -1,6 +1,6 @@
 package components.BPTree;
 
-public class BPTHelper {
+public class BPTFunctions {
 
     private static int nodeReads;
     private static int nodeReadsEx4;
