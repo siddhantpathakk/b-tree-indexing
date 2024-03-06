@@ -1,4 +1,4 @@
-import utils.Parser;
+import utils.Reader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -17,7 +17,7 @@ public class Main {
         if (file.exists()) {
             System.out.println("Reading data from " + String.valueOf(filePath));
             int diskSize = DEFAULT_MAX_DISK_CAPACITY;
-            Parser.readTXTFile(String.valueOf(filePath), diskSize);
+            Reader.read(String.valueOf(filePath), diskSize);
         } else if (!file.exists()) {
             Scanner sc = new Scanner(System.in);
             System.out.print("Default file path failed! Please input the absolute file path of data.tsv: ");
@@ -26,7 +26,7 @@ public class Main {
             if (newFileCheck.exists()) {
                 System.out.println("Reading data from " + String.valueOf(filePath));
                 int diskSize = DEFAULT_MAX_DISK_CAPACITY;
-                Parser.readTXTFile(String.valueOf(filePath), diskSize);
+                Reader.read(String.valueOf(filePath), diskSize);
             }
             sc.close();
         } else {

@@ -1,9 +1,9 @@
-package components.index;
+package components.BPTree;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import components.storage.Address;
+import components.DB.Address;
 
 public class LeafNode extends Node {
 

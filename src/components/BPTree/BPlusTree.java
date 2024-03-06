@@ -1,17 +1,18 @@
-package components.index;
+package components.BPTree;
 
 import java.util.ArrayList;
 import java.util.List;
-import components.storage.Address;
-import components.storage.Record;
-import components.storage.Database;
 
-import utils.Parser;
+import components.DB.Address;
+import components.DB.Database;
+import components.DB.Record;
+import utils.Reader;
 
 
 public class BPlusTree {
 
-    static final int NODE_SIZE = (Parser.BLOCK_SIZE-Parser.POINTER_SIZE)/(Parser.POINTER_SIZE+Parser.KEY_SIZE);
+    static final int NODE_SIZE = (Reader.SizeofBlock-Reader.PointerSize)
+    /(Reader.PointerSize+Reader.KeySize);
     static Node rootNode;
     Node nodeToInsertTo;
 

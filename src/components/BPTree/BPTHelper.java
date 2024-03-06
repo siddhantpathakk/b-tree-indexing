@@ -1,4 +1,4 @@
-package components.index;
+package components.BPTree;
 
 public class BPTHelper {
 

@@ -1,4 +1,4 @@
-package components.storage;
+package components.DB;
 
 public class Record {
     private String tConst; // 10 bytes

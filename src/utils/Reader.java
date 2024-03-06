@@ -1,28 +1,24 @@
 package utils;
 
-import components.index.BPlusTree;
-
-import java.util.Date;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.io.*;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
-import components.storage.Address;
-import components.storage.Record;
-import components.storage.Database;;;
+import components.BPTree.BPlusTree;
+import components.DB.Address;
+import components.DB.Database;
+import components.DB.Record;;;
 
-public class Parser {
-    public static final int BLOCK_SIZE = 400;
-    public static final int POINTER_SIZE = 8; // pointer size for 64 bit systems = 8 bytes
-    public static final int KEY_SIZE = 4; // type(key) = float 4 bytes
-    private static int counter = 0;
-
-    public static void readTXTFile(String filePath, int diskCapacity) {
+public class Reader {
+    public static final int SizeofBlock = 200;
+    public static final int PointerSize = 8; // pointer size for 64 bit systems = 8 bytes
+    public static final int KeySize = 4; // type(key) = float 4 bytes
+    public static final int DiskCapacity = 200_000_000;
+  
+    public static void read(String filePath, int diskCapacity) {
         try {
             String line;
-            Database db = new Database(diskCapacity, BLOCK_SIZE);
+            Database db = new Database(diskCapacity, SizeofBlock);
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             reader.readLine();
             int invalidDataCount = 0;
@@ -30,9 +26,6 @@ public class Parser {
             BPlusTree bPlusTree = new BPlusTree();
 
             while ((line = reader.readLine()) != null) {
-                // counter++;
-                // if (counter % 10000 == 0)
-                //     System.out.println(counter + " data rows read");
                 String[] tuple = line.split("\t");
                 try {
                     Record row = parseTuple(tuple);                
