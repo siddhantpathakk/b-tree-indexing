@@ -1,13 +1,13 @@
-package components.BPTree;
+package components.Nodes;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
 
 import components.DB.Address;
 
-public class LeafNode extends Node {
+public class LeafNode extends NodeFunctions {
 
-    protected TreeMap<Float, ArrayList<Address>> keyAddrMap;
+    public TreeMap<Float, ArrayList<Address>> keyAddrMap;
     protected ArrayList<Address> addresses;
     private LeafNode rightSibling;
     private LeafNode leftSibling;

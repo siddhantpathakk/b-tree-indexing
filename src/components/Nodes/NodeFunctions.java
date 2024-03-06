@@ -1,15 +1,16 @@
-package components.BPTree;
+package components.Nodes;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
 
+import components.BPTree.BPlusTree;
 import components.DB.Address;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 
-public class Node {
+public class NodeFunctions {
 
     private int minLeafNodeSize;
     private int minInternalNodeSize;
@@ -17,11 +18,11 @@ public class Node {
     private boolean isLeaf;
     private boolean isRoot;
     private InternalNode parent;
-    protected ArrayList<Float> keys;
-    Node rootNode;
+    public ArrayList<Float> keys;
+    NodeFunctions rootNode;
 
 
-    public Node() {
+    public NodeFunctions() {
         this.rootNode = BPlusTree.getRoot();
         this.isLeaf = false;
         this.isRoot = false;
@@ -33,7 +34,7 @@ public class Node {
         this.keys.remove(keys.size() - 1);
     }
 
-    void replaceKeyAt(int index, Float key) {
+    public void replaceKeyAt(int index, Float key) {
         keys.set(index, key);
     }
 
@@ -110,7 +111,7 @@ public class Node {
         boolean insertedNode = false;
 
         try {
-            for (Node currentNode : this.getParent().getChildren()) {
+            for (NodeFunctions currentNode : this.getParent().getChildren()) {
 
                 // if there is a node > than newNode, insert inbetween that node
                 if (newNode.getKeyAtIdx(newNode.getKeyCount() - 1) < currentNode.getKeyAtIdx(0)) {
@@ -362,7 +363,7 @@ public class Node {
                 break;
             }
             Float currentKey = currentParent.getKeyAt(k - 1);
-            Node currentChild = currentParent.getChild(k);
+            NodeFunctions currentChild = currentParent.getChild(k);
 
             // add node and keys to new parent
             newParent.children.add(0, currentChild);

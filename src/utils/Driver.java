@@ -6,6 +6,9 @@ import java.util.concurrent.TimeUnit;
 import components.BPTree.*;
 import components.DB.*;
 import components.DB.Record;
+import components.Nodes.InternalNode;
+import components.Nodes.LeafNode;
+import components.Nodes.NodeFunctions;
 
 public class Driver {
 
@@ -145,7 +148,7 @@ public class Driver {
         System.out.printf("\tRunning time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
     }
 
-    public static ArrayList<Float> getKeysToRemove(Node node, float lowerBound, float upperBound) {
+    public static ArrayList<Float> getKeysToRemove(NodeFunctions node, float lowerBound, float upperBound) {
         ArrayList<Float> keysToRemove = new ArrayList<Float>();
         while (!node.isLeaf()) {
             node = ((InternalNode) node).getChild(0);
