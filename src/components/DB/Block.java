@@ -1,6 +1,5 @@
 package components.DB;
 
-
 public class Block {
     private static int maxRecordCount;
     private int currRecordCount;
@@ -8,8 +7,8 @@ public class Block {
 
     public Block(int BLOCK_SIZE) {
         this.currRecordCount = 0;
-        this.maxRecordCount = BLOCK_SIZE / Record.getRecordSize();
-        this.records = new Record[this.maxRecordCount];
+        maxRecordCount = BLOCK_SIZE / Record.getRecordSize();
+        this.records = new Record[maxRecordCount];
     }
 
     public boolean blockAvailable() {
@@ -32,7 +31,6 @@ public class Block {
         records[offset] = null;
         this.currRecordCount--;
     }
-    
 
     // GETTERS AND (NO) SETTERS
     public int getCurrSize() {
@@ -46,7 +44,7 @@ public class Block {
     public Record getRecord(int offset) {
         return records[offset];
     }
-    
+
     public Record getRecordFromBlock(int recordIdx) {
         return records[recordIdx];
     }

@@ -56,7 +56,7 @@ public class Driver {
         System.out.println("Parameter n: " + BPlusTree.SizeofNode);
         System.out.printf("Number of Nodes in B+ tree: %d\n", BPTree.countNodes(BPlusTree.getRoot()));
         System.out.printf("Number of Levels in B+ tree: %d\n", BPTree.getDepth(BPlusTree.getRoot()));
-        System.out.println("Content of the root node (only Keys): " + BPlusTree.getRoot().getKeys() + "\n");
+        System.out.println("Content of the root node (only Keys): " + BPlusTree.getRoot().keys + "\n");
     }
 
     public static void experiment3(Database Database, BPlusTree BPTree) {
@@ -136,7 +136,7 @@ public class Driver {
         System.out.printf("Number of Nodes in updated B+ tree: %d\n", BPTree.countNodes(BPlusTree.getRoot()));
         System.out.printf("Number of Levels in updated B+ tree: %d\n", BPTree.getDepth(BPlusTree.getRoot()));
         System.out.printf("\nContent of the root node of the updated B+ tree(only the keys): %s\n",
-                BPlusTree.getRoot().getKeys());
+                BPlusTree.getRoot().keys);
         System.out.printf("\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
 
         System.out.print("\n\nBrute-force range deletion:");
@@ -157,8 +157,8 @@ public class Driver {
         boolean flag = false;
         int pointer = 0;
         while (!flag && leafNode != null) {
-            while (pointer < leafNode.getKeyCount()) {
-                Float key = leafNode.getKeyAt(pointer);
+            while (pointer < leafNode.keys.size()) {
+                Float key = leafNode.keys.get(pointer);
                 pointer += 1;
                 if (key >= lowerBound && key <= upperBound) {
                     keysToRemove.add(key);

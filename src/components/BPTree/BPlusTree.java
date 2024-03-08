@@ -1,3 +1,4 @@
+
 package components.BPTree;
 
 import java.util.ArrayList;
@@ -5,18 +6,13 @@ import java.util.Collection;
 import java.util.List;
 
 import components.DB.Address;
-import components.DB.Database;
-import components.DB.Record;
-import components.Nodes.InternalNode;
-import components.Nodes.LeafNode;
-import components.Nodes.NodeFunctions;
+import components.Nodes.*;
 import utils.Reader;
-
 
 public class BPlusTree {
 
-    public static final int SizeofNode = (Reader.SizeofBlock-Reader.PointerSize)
-    /(Reader.PointerSize+Reader.KeySize);
+    public static final int SizeofNode = (Reader.SizeofBlock - Reader.SizeofPointer)
+            / (Reader.SizeofPointer + Reader.SizeofKey);
     public static NodeFunctions rootNode;
     NodeFunctions nodeToInsertTo;
 
@@ -37,33 +33,28 @@ public class BPlusTree {
         return newNode;
     }
 
-    // insert key: addr to a suitable node
     public void insertKeyAddrPair(float key, Address add) {
         nodeToInsertTo = searchNodeContaining(key);
         ((LeafNode) nodeToInsertTo).addRecord(key, add);
     }
-    
-    // find the leaf node to find/insert the key to
+
     public LeafNode searchNodeContaining(Float key) {
         ArrayList<Float> keys;
 
-        // basse case is rootNode as Leaf
         if (BPlusTree.rootNode.isLeaf()) {
             setRoot(rootNode);
             return (LeafNode) rootNode;
         } else {
             NodeFunctions nodeToInsertTo = (InternalNode) getRoot();
 
-            // keep traversing until own child is a leaf node
             while (!((InternalNode) nodeToInsertTo).getChild(0).isLeaf()) {
-                keys = nodeToInsertTo.getKeys();
+                keys = nodeToInsertTo.keys;
                 for (int i = keys.size() - 1; i >= 0; i--) {
 
-                    // pointer - key - pointer - key sequence means we need get the right pointer so + 1
-                    if (nodeToInsertTo.getKeyAtIdx(i) <= key) {
+                    if (nodeToInsertTo.keys.get(i) <= key) {
                         nodeToInsertTo = ((InternalNode) nodeToInsertTo).getChild(i + 1);
                         break;
-                    } else if (i == 0) { // key to insert is smaller than smallest key in curr node
+                    } else if (i == 0) {
                         nodeToInsertTo = ((InternalNode) nodeToInsertTo).getChild(0);
                     }
                 }
@@ -72,39 +63,24 @@ public class BPlusTree {
                 }
             }
 
-            keys = nodeToInsertTo.getKeys();
-            // find the child node to insert to
+            keys = nodeToInsertTo.keys;
             for (int i = keys.size() - 1; i >= 0; i--) {
                 if (keys.get(i) <= key) {
                     return (LeafNode) ((InternalNode) nodeToInsertTo).getChild(i + 1);
                 }
             }
-            // if key to insert is smaller than smallest key in node
             return (LeafNode) ((InternalNode) nodeToInsertTo).getChild(0);
         }
     }
 
-    // delete node and return addresses to be removed
-    public ArrayList<Address> deleteKey(Float key) {
-        // System.out.println("Entering deleteKey function");
-        // Float lowerbound = checkForLowerbound(key);
-        // System.out.println("Lowerbound: " + lowerbound);
-        return (deleteKeyRecursive(rootNode, null, -1, -1, key, key));
-    }
-
-    // handles an invalid node type (wrapper function)
     private void handleInvalidTree(NodeFunctions underUtilizedNode, InternalNode parent, int parentPointerIndex,
             int parentKeyIndex) throws IllegalStateException {
         if (parent == null) {
             handleInvalidRootNode(underUtilizedNode);
         } else if (underUtilizedNode.isLeaf()) {
-            // Rebalancing of Leaf node
-            // System.out.println("LEAF UNU");
             handleInvalidLeafNode(underUtilizedNode, parent,
                     parentPointerIndex, parentKeyIndex);
         } else if (!underUtilizedNode.isLeaf()) {
-            // Rebalancing of Non-leaf node
-            // System.out.println("INODE UNU");
             handleInvalidInternalNode(underUtilizedNode, parent,
                     parentPointerIndex, parentKeyIndex);
         } else {
@@ -121,74 +97,70 @@ public class BPlusTree {
         return rootNode;
     }
 
-
     private Float checkForLowerbound(Float key) {
         System.out.println("Entering checkForLowerbound function");
         InternalNode node = (InternalNode) rootNode;
         NodeFunctions targetNode = node;
         boolean found = false;
-        // find the largest key in node smaller than key
-        for (int i = node.getKeyCount() - 1; i >= 0; i--) {
-            if (key >= node.getKeyAt(i)) {
+        for (int i = node.keys.size() - 1; i >= 0; i--) {
+            if (key >= node.keys.get(i)) {
                 targetNode = node.getChild(i + 1);
                 found = true;
                 break;
             }
-        };
-        if (!found && key < node.getKeyAt(0)) {
+        }
+        ;
+        if (!found && key < node.keys.get(0)) {
             targetNode = ((InternalNode) node).getChild(0);
         }
         System.out.println("found the largest key in node smaller than key");
-        // loop till get leftmost key
         while (!node.getChild(0).isLeaf()) {
             targetNode = ((InternalNode) node).getChild(0);
         }
         System.out.println("looped completely till found leftmost key");
 
         if (targetNode.isLeaf()) {
-            return targetNode.getFirstKey();
+            return targetNode.keys.get(0);
         } else {
-            return ((InternalNode) targetNode).getChild(0).getKeyAt(0);
+            return ((InternalNode) targetNode).getChild(0).keys.get(0);
         }
     }
 
-    // recursive function to delete key from all relevant nodes
-    public ArrayList<Address> deleteKeyRecursive(NodeFunctions node, InternalNode parent, int parentPointerIndex, int parentKeyIndex,
+    public ArrayList<Address> deleteKeyRecursive(NodeFunctions node, InternalNode parent, int parentPointerIndex,
+            int parentKeyIndex,
             Float key, Float lowerbound) {
-        // System.out.printf("GET FIRST KEY %.3f\n", node.getFirstKey());
+
         ArrayList<Address> addressesToDel = new ArrayList<>();
-        // hits the target node location
+
         if (node.isLeaf()) {
             LeafNode leafNode = (LeafNode) node;
-                int keyIdx = node.getIdxOfKey(key, false);
-                if ((keyIdx == leafNode.getKeyCount()) || (!key.equals(leafNode.getKeyAt(keyIdx)))) {
-                    return null;
-                }
+            int keyIdx = node.getIdxOfKey(key, false);
+            if ((keyIdx == leafNode.keys.size()) || (!key.equals(leafNode.keys.get(keyIdx)))) {
+                return null;
+            }
 
-                addressesToDel.addAll(leafNode.getAddressesForKey(key));
-                leafNode.removeKeyAt(keyIdx);
-                leafNode.removeKeyInMap(key);
+            addressesToDel.addAll(leafNode.getAddressesForKey(key));
+            leafNode.keys.remove(keyIdx);
+            leafNode.removeKeyInMap(key);
 
-                int ptrIdx = node.getIdxOfKey(key, true);
-                keyIdx = ptrIdx - 1;
-                // update tree recursively
-                if (leafNode.getKeyCount() >= (keyIdx + 1)) {
-                    Float newLowerBound = lowerbound;
-                    List<Float> keys = leafNode.getKeys();
-                    // System.out.printf("ptrIdx: %d, nlb: %.3f\n", ptrIdx, newLowerBound);
-                    // System.out.println(keys);
-                    leafNode.updateKeyAt(ptrIdx - 1, keys.get(0), false, newLowerBound);
-                } else {
-                    Float newLowerBound = checkForLowerbound(leafNode.getKeyAtIdx(keyIdx + 1));
-                    List<Float> keys = leafNode.getKeys();
-                    leafNode.updateKeyAt(ptrIdx - 1, keys.get(0), true, newLowerBound);
-                }
+            int ptrIdx = node.getIdxOfKey(key, true);
+            keyIdx = ptrIdx - 1;
+
+            if (leafNode.keys.size() >= (keyIdx + 1)) {
+                Float newLowerBound = lowerbound;
+                List<Float> keys = leafNode.keys;
+                leafNode.updateKeyAt(ptrIdx - 1, keys.get(0), false, newLowerBound);
+            } else {
+                Float newLowerBound = checkForLowerbound(leafNode.keys.get(keyIdx + 1));
+                List<Float> keys = leafNode.keys;
+                leafNode.updateKeyAt(ptrIdx - 1, keys.get(0), true, newLowerBound);
+            }
         } else {
-            // traverse to leaf node to find records to delete
+
             InternalNode nonLeafNode = (InternalNode) node;
             int ptrIdx = node.getIdxOfKey(key, true);
             int keyIdx = ptrIdx - 1;
-            // read the next level node
+
             NodeFunctions next = nonLeafNode.getChild(ptrIdx);
             addressesToDel = deleteKeyRecursive(next, nonLeafNode, ptrIdx, keyIdx, key, lowerbound);
         }
@@ -196,12 +168,10 @@ public class BPlusTree {
         if (node.isUnderUtilized(SizeofNode)) {
             handleInvalidTree(node, parent, parentPointerIndex, parentKeyIndex);
         }
-        
 
         return addressesToDel;
     }
 
-    
     public void handleInvalidRootNode(NodeFunctions underUtilizedNode) {
         if (underUtilizedNode.isLeaf()) {
             ((LeafNode) underUtilizedNode).clear();
@@ -209,30 +179,26 @@ public class BPlusTree {
             InternalNode nonLeafRoot = (InternalNode) underUtilizedNode;
             NodeFunctions newRoot = nonLeafRoot.getChild(0);
             newRoot.setParent(null);
-            this.rootNode = newRoot;
+            rootNode = newRoot;
         }
     }
 
-    // helper function to handle invalid leaf node
     private void handleInvalidLeafNode(NodeFunctions underUtilizedNode,
             InternalNode parent,
             int parentPointerIndex,
             int parentKeyIndex) {
         LeafNode underUtilizedLeaf = (LeafNode) underUtilizedNode;
-        // get left sibling
         LeafNode leftSibling = (LeafNode) underUtilizedLeaf.getLeftSibling();
-        // get right sibling
-        LeafNode rightSibling = (LeafNode) underUtilizedLeaf.getRightSibling(); 
-        // move one key from sibling to target
+        LeafNode rightSibling = (LeafNode) underUtilizedLeaf.getRightSibling();
         if (leftSibling != null && leftSibling.canDonate(SizeofNode)) {
             moveOneKeyLeafNode(leftSibling, underUtilizedLeaf, true, parent, parentKeyIndex);
         } else if (rightSibling != null && rightSibling.canDonate(SizeofNode)) {
             moveOneKeyLeafNode(rightSibling, underUtilizedLeaf, false, parent, parentKeyIndex + 1);
 
-        // cant' donate, need to merge, check if left/right + self size <= sizeofnode, then see if we parent can handle a decrement of children
-        } else if (leftSibling != null && (leftSibling.getKeyCount() + underUtilizedLeaf.getKeyCount()) <= SizeofNode) {
+        } else if (leftSibling != null && (leftSibling.keys.size() + underUtilizedLeaf.keys.size()) <= SizeofNode) {
             mergeLeafNodes(leftSibling, underUtilizedLeaf, parent, parentPointerIndex, parentKeyIndex, false);
-        } else if (rightSibling != null && (rightSibling.getKeyCount() + underUtilizedLeaf.getKeyCount()) <= SizeofNode) {
+        } else if (rightSibling != null
+                && (rightSibling.keys.size() + underUtilizedLeaf.keys.size()) <= SizeofNode) {
             mergeLeafNodes(underUtilizedLeaf, rightSibling, parent, parentPointerIndex + 1, parentKeyIndex + 1, true);
         }
     }
@@ -258,21 +224,25 @@ public class BPlusTree {
             System.out.print(e);
         }
 
-        // if node has no siblings and is underutilized, something went wrong
         if (rightInNodeSibling == null && leftInNodeSibling == null)
-            throw new IllegalStateException("Both leftInNodeSibling and rightInNodeSibling is null for " + underUtilizedNode);
+            throw new IllegalStateException(
+                    "Both leftInNodeSibling and rightInNodeSibling is null for " + underUtilizedNode);
 
-        // move one key from sibling to target node, prioritise left        
         if (leftInNodeSibling != null && leftInNodeSibling.canDonate(SizeofNode)) {
-            moveOneKeyInternalNode(leftInNodeSibling, (InternalNode) underUtilizedInternalNode, true, parent, parentKeyIndex);
+            moveOneKeyInternalNode(leftInNodeSibling, (InternalNode) underUtilizedInternalNode, true, parent,
+                    parentKeyIndex);
         } else if (rightInNodeSibling != null && rightInNodeSibling.canDonate(SizeofNode)) {
-            moveOneKeyInternalNode(rightInNodeSibling, (InternalNode) underUtilizedInternalNode, false, parent, parentKeyIndex + 1);
-        
-            // if cant donate we check if can merge
-        } else if (leftInNodeSibling != null && (underUtilizedInternalNode.getKeyCount() + leftInNodeSibling.getKeyCount()) <= SizeofNode) {
-            mergeInternalNodes(leftInNodeSibling, (InternalNode) underUtilizedInternalNode, parent, parentPointerIndex, parentKeyIndex, true);
-        } else if (rightInNodeSibling != null && (underUtilizedInternalNode.getKeyCount() + rightInNodeSibling.getKeyCount()) <= SizeofNode) {
-            mergeInternalNodes((InternalNode) underUtilizedInternalNode, rightInNodeSibling, parent, parentPointerIndex + 1, parentKeyIndex + 1, false);
+            moveOneKeyInternalNode(rightInNodeSibling, (InternalNode) underUtilizedInternalNode, false, parent,
+                    parentKeyIndex + 1);
+
+        } else if (leftInNodeSibling != null
+                && (underUtilizedInternalNode.keys.size() + leftInNodeSibling.keys.size()) <= SizeofNode) {
+            mergeInternalNodes(leftInNodeSibling, (InternalNode) underUtilizedInternalNode, parent, parentPointerIndex,
+                    parentKeyIndex, true);
+        } else if (rightInNodeSibling != null
+                && (underUtilizedInternalNode.keys.size() + rightInNodeSibling.keys.size()) <= SizeofNode) {
+            mergeInternalNodes((InternalNode) underUtilizedInternalNode, rightInNodeSibling, parent,
+                    parentPointerIndex + 1, parentKeyIndex + 1, false);
         }
     }
 
@@ -282,175 +252,145 @@ public class BPlusTree {
         Float key;
 
         if (donorOnLeft) {
-            // move last key & child from donor to target node (receiver)
-            donor.removeKeyAt(donor.getKeyCount() - 1);
-            NodeFunctions nodeToMove = donor.getChild(donor.getKeyCount());
+            donor.keys.remove(donor.keys.size() - 1);
+            NodeFunctions nodeToMove = donor.getChild(donor.keys.size());
             donor.removeChild(nodeToMove);
             receiver.addChild(nodeToMove);
 
-            receiver.getKeys().add(receiver.getKeyCount(), receiver.getChild(1).getFirstKey());
-            key = receiver.getKeyAt(0);
+            receiver.keys.add(receiver.keys.size(), receiver.getChild(1).keys.get(0));
+            key = receiver.keys.get(0);
         } else {
-            // move first key from right donor to target node
-            donor.removeKeyAt(0);
+            donor.keys.remove(0);
             NodeFunctions nodeToMove = donor.getChild(0);
             donor.removeChild(nodeToMove);
             receiver.addChild(nodeToMove);
 
-            receiver.getKeys().add(receiver.getKeyCount(), receiver.getChild(1).getFirstKey());
-            key = receiver.getKeyAt(0);
+            receiver.keys.add(receiver.keys.size(), receiver.getChild(1).keys.get(0));
+            key = receiver.keys.get(0);
         }
 
         int ptrIdx = receiver.getIdxOfKey(key, true);
         int keyIdx = ptrIdx - 1;
 
-        // InternalNode LeafNode = (InternalNode) receiver;
         Float lowerbound = checkForLowerbound(key);
         Float newLowerBound;
-        // if receiver previously already have keys
-        if (receiver.getKeyCount() >= (keyIdx + 1)) {
+        if (receiver.keys.size() >= (keyIdx + 1)) {
             newLowerBound = lowerbound;
         } else {
-            newLowerBound = checkForLowerbound(receiver.getKeyAtIdx(keyIdx + 1));
+            newLowerBound = checkForLowerbound(receiver.keys.get(keyIdx + 1));
             parent.updateKeyAt(inBetweenKeyIdx - 1, key, false, checkForLowerbound(key));
         }
-        parent.replaceKeyAt(inBetweenKeyIdx, newLowerBound);
+        parent.keys.set(inBetweenKeyIdx, newLowerBound);
 
     }
 
     private void mergeInternalNodes(InternalNode targetNode, InternalNode sacrificialNode, InternalNode parent,
             int rightPointerIdx,
             int inBetweenKeyIdx, boolean targetNodeInsufficient) {
-        // Use the targetNodeInsufficient flag to determine merge direction
         if (targetNodeInsufficient) {
-            // Add the in-between key from the parent
-            targetNode.getKeys().add(parent.getKeyAt(inBetweenKeyIdx));
-            
-            // Move keys and children from sacrificialNode to targetNode
-            targetNode.getKeys().addAll(sacrificialNode.getKeys());
+            targetNode.keys.add(parent.keys.get(inBetweenKeyIdx));
+            targetNode.keys.addAll(sacrificialNode.keys);
             targetNode.getChildren().addAll(sacrificialNode.getChildren());
-    
+
         } else {
-            // Add the in-between key from the parent
-            targetNode.getKeys().add(0, parent.getKeyAt(inBetweenKeyIdx));
-    
-            // Move keys and children from sacrificialNode to the start of targetNode
-            targetNode.getKeys().addAll(0, sacrificialNode.getKeys());
+            targetNode.keys.add(0, parent.keys.get(inBetweenKeyIdx));
+            targetNode.keys.addAll(0, sacrificialNode.keys);
             targetNode.getChildren().addAll(0, sacrificialNode.getChildren());
         }
-    
-        // Remove the sacrificialNode and the in-between key from the parent
+
         parent.getChildren().remove(sacrificialNode);
-        parent.getKeys().remove(inBetweenKeyIdx);
-    
+        parent.keys.remove(inBetweenKeyIdx);
+
         sacrificialNode = null;
-    
-        // handling under population of parent not required for this project but ideally we would have it
     }
 
     private void mergeLeafNodes(LeafNode targetNode, LeafNode sacrificialNode, InternalNode parent,
             int rightPointerIdx, int inBetweenKeyIdx, boolean targetNodeInsufficient) {
-    
-        // Merge keys and address pairs from sacrificialNode to targetNode
-        targetNode.getKeys().addAll(sacrificialNode.getKeys());
-        targetNode.keyAddrMap.putAll(sacrificialNode.keyAddrMap); // Assuming address map
-    
-        // Update the sibling pointers
+
+        targetNode.keys.addAll(sacrificialNode.keys);
+        targetNode.keyAddrMap.putAll(sacrificialNode.keyAddrMap);
+
         if (sacrificialNode.getRightSibling() != null) {
             sacrificialNode.getRightSibling().setLeftSibling(targetNode);
         }
         targetNode.setRightSibling(sacrificialNode.getRightSibling());
-    
-        // Remove the sacrificialNode and its key from the parent
+
         parent.getChildren().remove(sacrificialNode);
-        parent.getKeys().remove(inBetweenKeyIdx);
-    
+        parent.keys.remove(inBetweenKeyIdx);
+
         sacrificialNode = null;
-    
-    
-        // handling under population of parent not required for this project but ideally we would have it
+
     }
 
-    private void moveOneKeyLeafNode(LeafNode    donor, LeafNode receiver,
+    private void moveOneKeyLeafNode(LeafNode donor, LeafNode receiver,
             boolean donorOnLeft, InternalNode parent,
             int inBetweenKeyIdx) {
         Float key;
         if (donorOnLeft) {
-            // move the key from left node to right
-            Float donorKey = donor.getLastKey();
+            Float donorKey = donor.keys.get(donor.keys.size() - 1);
             receiver.insertKeyAddrArrPair(donorKey, donor.getAddressesForKey(donorKey));
             donor.removeKeyInMap(donorKey);
 
             receiver.insertKeyAt(0, donorKey);
-            donor.removeLastKey();
-            key = receiver.getKeyAt(0);
+            donor.keys.remove(donor.keys.size() - 1);
+            key = receiver.keys.get(0);
         } else {
-            // move key from right node to left node
-            Float donorKey = donor.getFirstKey();
+            Float donorKey = donor.keys.get(0);
             receiver.insertKeyAddrArrPair(donorKey, donor.getAddressesForKey(donorKey));
             donor.removeKeyInMap(donorKey);
 
-            receiver.insertKeyAt(receiver.getKeyCount(), donorKey);
-            donor.removeKeyAt(0);
-            key = donor.getKeyAt(0);
+            receiver.insertKeyAt(receiver.keys.size(), donorKey);
+            donor.keys.remove(0);
+            key = donor.keys.get(0);
         }
 
-        // update receiver's parent
         if (inBetweenKeyIdx == -1) {
-            // pass
         } else if (inBetweenKeyIdx >= 0) {
-            if (parent.getKeyCount() == inBetweenKeyIdx) {
-                parent.replaceKeyAt(inBetweenKeyIdx - 1, key);
+            if (parent.keys.size() == inBetweenKeyIdx) {
+                parent.keys.set(inBetweenKeyIdx - 1, key);
 
-                int lastParentChild = receiver.getParent().getKeys().size() - 1;
-                Float lastParentChildKey = receiver.getParent().getChild(receiver.getParent().getKeys().size()).getFirstKey();
-                if (!(donor.getParent().getChild(donor.getParent().getChildren().size() - 1).getFirstKey()).equals(key)) {
-                    receiver.getParent().replaceKeyAt(lastParentChild, lastParentChildKey);
+                int lastParentChild = receiver.getParent().keys.size() - 1;
+                Float lastParentChildKey = receiver.getParent().getChild(receiver.getParent().keys.size()).keys.get(0);
+                if (!(donor.getParent().getChild(donor.getParent().getChildren().size() - 1).keys.get(0))
+                        .equals(key)) {
+                    receiver.getParent().keys.set(lastParentChild, lastParentChildKey);
                 }
             } else {
-                parent.replaceKeyAt(inBetweenKeyIdx, key);
+                parent.keys.set(inBetweenKeyIdx, key);
 
-                // if donor is from the same parent
-                if (!(donor.getParent().getChild(inBetweenKeyIdx + 1).getFirstKey()).equals(key)) {
-                    donor.getParent().replaceKeyAt(inBetweenKeyIdx,
-                            donor.getParent().getChild(inBetweenKeyIdx + 1).getFirstKey());
+                if (!(donor.getParent().getChild(inBetweenKeyIdx + 1).keys.get(0)).equals(key)) {
+                    donor.getParent().keys.set(inBetweenKeyIdx,
+                            donor.getParent().getChild(inBetweenKeyIdx + 1).keys.get(0));
                 }
             }
         } else {
-            parent.replaceKeyAt(inBetweenKeyIdx - 1, key);
+            parent.keys.set(inBetweenKeyIdx - 1, key);
         }
 
         int ptrIdx = receiver.getIdxOfKey(key, true);
         int keyIdx = ptrIdx - 1;
 
         LeafNode LeafNode = (LeafNode) receiver;
-        Float lowerbound = checkForLowerbound(key);
-        Float newLowerBound = 0.0f;
 
-        if (LeafNode.getKeyCount() >= (keyIdx + 1)) {
-            newLowerBound = lowerbound;
-        } else {
-            newLowerBound = checkForLowerbound(LeafNode.getKeyAtIdx(keyIdx + 1));
-            parent.updateKeyAt(inBetweenKeyIdx - 1, parent.getChild(inBetweenKeyIdx).getFirstKey(), false,
+        if (LeafNode.keys.size() < (keyIdx + 1))
+            parent.updateKeyAt(inBetweenKeyIdx - 1, parent.getChild(inBetweenKeyIdx).keys.get(0), false,
                     checkForLowerbound(key));
-        }
 
     }
 
     public ArrayList<Address> getAddresses(Float key) {
-        return (searchValue(this.rootNode, key));
+        return (searchValue(rootNode, key));
     }
 
     public ArrayList<Address> searchValue(NodeFunctions node, Float key) {
         BPTFunctions.addNodeReads();
         if (node.isLeaf()) {
             int ptrIdx = node.getIdxOfKey(key, false);
-            if (ptrIdx >= 0 && ptrIdx < node.getKeyCount() && key.equals(node.getKeyAt(ptrIdx))) {
+            if (ptrIdx >= 0 && ptrIdx < node.keys.size() && key.equals(node.keys.get(ptrIdx))) {
                 return ((LeafNode) node).getAddressesForKey(key);
             }
             return null;
-        }
-        else {
+        } else {
             int ptrIdx = node.getIdxOfKey(key, false);
             NodeFunctions childNode = ((InternalNode) node).getChild(ptrIdx);
             return (searchValue(childNode, key));
@@ -458,7 +398,6 @@ public class BPlusTree {
     }
 
     public int countNodes(NodeFunctions node) {
-        // start with root
         int count = 1;
         if (node.isLeaf()) {
             return count;
@@ -467,23 +406,6 @@ public class BPlusTree {
             count += countNodes(child);
         }
         return count;
-    }
-
-    // -------------------------EXPERIMENT 2-------------------------
-
-    public static void ex2(BPlusTree bPlusTree) {
-        System.out.println("\nEXPERIMENT 2: Build a B+Tree on numVotes by inserting the records sequentially:");
-        System.out.println("Parameter n: " + SizeofNode);
-        System.out.printf("No. of Nodes in B+ tree: %d\n", bPlusTree.countNodes(bPlusTree.getRoot()));
-        System.out.printf("No. of Levels in B+ tree: %d\n", bPlusTree.getDepth(bPlusTree.getRoot()));
-        System.out.println("Content of the root node: " + bPlusTree.getRoot().keys + "\n");
-
-        // sanity check
-        // Node temp = bPlusTree.getRoot();
-        // while (!temp.keys.isEmpty()) {
-        //     System.out.println(temp.keys);
-        //     temp = ((InternalNode) temp).getChild(0);
-        // }
     }
 
     public int getDepth(NodeFunctions node) {
@@ -496,156 +418,33 @@ public class BPlusTree {
         return level;
     }
 
-    // -------------------------EXPERIMENT 3-------------------------
-
-    public static void ex3(Database db, BPlusTree bPlusTree) {
-        System.out.println("\nEXPERIMENT 3: Retrieve those records with the \"numVotes\" equal to 500:");
-        BPTFunctions performance = new BPTFunctions();
-        long startTime = System.nanoTime();
-        ArrayList<Address> addresses = bPlusTree.getAddresses((float) 500);
-        long endTime = System.nanoTime();
-        float totalNumVotes = 0;
-        int count = 0;
-        ArrayList<Record> res = new ArrayList<>();
-        if (addresses != null) {
-            for (Address address : addresses) {
-                Record rec = db.getRecord(address);
-                res.add(rec);
-                totalNumVotes += rec.getNumVotes();
-                count++;
-            }
-        }
-        System.out.printf("No. of index nodes accessed by process: %d", performance.getNodeReads());
-        System.out.printf("\nNo. of data blocks accessed by process: %d", db.getBlockAccesses());
-        System.out.printf("\n\n(Index Search) No. of records found: %d", count);
-        System.out.printf("\nAverage of NumVotes of returned records: %.2f", count > 0 ? totalNumVotes/count : 0);
-        // running time = endTime - startTime (in nanoseconds)
-        System.out.printf("\n\tRunning time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
-        // point 5: brute-force searching
-        startTime = System.nanoTime();
-        int blkAccesses = db.bruteForceSearch(500, 500);
-        endTime = System.nanoTime();
-        System.out.printf("\nNo. of data blocks accessed by bruteforce: %d", blkAccesses);
-        System.out.printf("\n\tRunning Time: %.3f ms\n\n", (endTime - startTime) / 1_000_000.0);
-    }
-
-
-    // -------------------------EXPERIMENT 4-------------------------
-
-    public static void ex4(Database db, BPlusTree bPlusTree) {
-        System.out.println("\n\nEXPERIMENT 4: Retrieve those records with 30,000 >= \"numVotes\" <= 40,000:");
-            BPTFunctions performance = new BPTFunctions();
-            long startTime = System.nanoTime();
-            ArrayList<Address> addresses = bPlusTree.getAddressesForKeysBetween(bPlusTree.getRoot(), 30000, 40000);
-            long endTime = System.nanoTime();
-            double averageRating = 0;
-            int count = 0;
-            ArrayList<Record> res = new ArrayList<>();
-            if (addresses != null) {
-                for (Address address : addresses) {
-                    Record rec = db.getRecord(address);
-                    res.add(rec);
-                    averageRating += rec.getAverageRating();
-                    count++;
+    public ArrayList<Address> getAddressesForKeysBetween(NodeFunctions node,
+            float minKey, float maxKey) {
+        BPTFunctions.addIndexNodeReads();
+        if (!node.isLeaf()) {
+            int ptr = node.getIdxOfKey(minKey, true);
+            NodeFunctions childNode = ((InternalNode) node).getChild(ptr);
+            return getAddressesForKeysBetween(childNode, minKey, maxKey);
+        } else {
+            ArrayList<Address> addresses = new ArrayList<>();
+            int ptr = node.getIdxOfKey(minKey, false);
+            LeafNode leafNode = (LeafNode) node;
+            while (true) {
+                if (ptr == leafNode.keys.size()) {
+                    if (leafNode.getRightSibling() == null)
+                        break;
+                    leafNode = (LeafNode) leafNode.getRightSibling();
+                    BPTFunctions.addIndexNodeReads();
+                    ptr = 0;
                 }
+                if (leafNode.keys.get(ptr) > maxKey)
+                    break;
+                Float key = leafNode.keys.get(ptr);
+                addresses.addAll(leafNode.getAddressesForKey(key));
+                ptr++;
             }
-            System.out.printf("No. of index nodes accessed by process: %d", performance.getNodeReadsEx4());
-            System.out.printf("\nNo. of data blocks accessed by process: %d", db.getBlockAccesses());
-            System.out.printf("\n\n(Index Search) No. of records found: %d", count);
-            System.out.printf("\nAverage of averageRatings of returned records: %.2f", count > 0 ? averageRating/count : 0);
-            // running time = endTime - startTime (in nanoseconds)
-            System.out.printf("\n\tRunning time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
-            // point 5 brute-force searching
-            startTime = System.nanoTime();
-            int blkAccesses = db.bruteForceSearch(30000,40000);
-            endTime = System.nanoTime();
-            System.out.printf("\nNo. of data blocks accessed by bruteforce: %d", blkAccesses);
-            System.out.printf("\n\tRunning Time: %.3f ms\n\n", (endTime - startTime) / 1_000_000.0);
+            return (addresses.isEmpty() ? null : addresses);
         }
-        
-        public ArrayList<Address> getAddressesForKeysBetween(NodeFunctions node, float minKey, float maxKey) {
-            BPTFunctions.addIndexNodeReads();
-            // traverse until leaf
-            if (!node.isLeaf()) {
-                int ptr = node.getIdxOfKey(minKey, true);
-                NodeFunctions childNode = ((InternalNode) node).getChild(ptr);
-                return getAddressesForKeysBetween(childNode, minKey, maxKey);
-            } else {
-                ArrayList<Address> addresses = new ArrayList<>();
-                int ptr = node.getIdxOfKey(minKey, false);
-                LeafNode leafNode = (LeafNode) node;
-                while (true) {
-                    if (ptr == leafNode.getKeyCount()) {
-                        if (leafNode.getRightSibling() == null) break;
-                        leafNode = (LeafNode) leafNode.getRightSibling();
-                        BPTFunctions.addIndexNodeReads();
-                        ptr = 0;
-                    }
-                    if (leafNode.getKeyAt(ptr) > maxKey) break;
-                    Float key = leafNode.getKeyAt(ptr);
-                    addresses.addAll(leafNode.getAddressesForKey(key));
-                    ptr++;
-                }
-                return (addresses.isEmpty() ? null : addresses);
-            }
-        }
-
-    // -------------------------EXPERIMENT 5-------------------------
-    
-    public static void ex5(Database db, BPlusTree bPlusTree) {
-        System.out.println("\n\nEXPERIMENT 5: Delete those records with \"numVotes\" = 1,000:");
-        long startTime = System.nanoTime();
-        ArrayList<Float> keysToRemove = bPlusTree.ex5Helper(bPlusTree.getRoot(), 1000, 1000);
-        ArrayList<Address> addressesToRemove = new ArrayList<Address>();
-        // There is a more efficient way to be mentioned in report
-        // System.out.println("Entering for loop");
-        for (Float key : keysToRemove) {
-            addressesToRemove.addAll(bPlusTree.deleteKey(key));
-        }
-        // System.out.println("Exiting for loop");
-        System.out.printf("No. of records to delete: %d\n", addressesToRemove.size());
-        // db.deleteRecord(addressesToRemove); // Commented out to show a fair trade off with second part where deletion is not performed
-        long endTime = System.nanoTime();
-        System.out.printf("No. of Nodes in updated B+ tree: %d\n", bPlusTree.countNodes(bPlusTree.getRoot()));
-        System.out.printf("No. of Levels in updated B+ tree: %d\n", bPlusTree.getDepth(bPlusTree.getRoot()));
-        System.out.printf("\nContent of the root node of the updated B+ tree(only the keys): %s\n", BPlusTree.getRoot().keys);
-        System.out.printf("\tRunning time: %.3f ms", (endTime - startTime) / 1_000_000.0);
-
-        System.out.print("\n\nBrute-force range deletion:");
-        startTime = System.nanoTime();
-        int bruteForceAccessCount = db.bruteForceSearch(1000, 1000);
-        endTime = System.nanoTime();
-        System.out.printf("\nNumber of data blocks that would be accessed by a brute-force: %d\n", bruteForceAccessCount);
-        System.out.printf("\tRunning time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
-    }
-
-    public static ArrayList<Float> ex5Helper(NodeFunctions node, float lowerBound, float upperBound) {
-        ArrayList<Float> keysToRemove = new ArrayList<Float>();
-        // go all the way to the left
-        while (!node.isLeaf()) {
-            node = ((InternalNode) node).getChild(0);
-        }
-        LeafNode leafNode = (LeafNode) (NodeFunctions) node;
-        boolean done = false;
-        int pointer = 0;
-        while (!done && leafNode != null) {
-            // System.out.println(leafNode.keys);
-            while (pointer < leafNode.getKeyCount()) {
-                Float key = leafNode.getKeyAt(pointer);
-                pointer += 1;
-                if (key >= lowerBound && key <= upperBound) {
-                    keysToRemove.add(key);
-                } else if (key < lowerBound) {
-                    pointer += 1;
-                } else if (key > upperBound) {
-                    done = true;
-                }
-            }
-            pointer = 0;
-            leafNode = leafNode.getRightSibling();
-        }
-        System.out.printf("No. of keys to delete (not records): %d\n", keysToRemove.size());
-        return keysToRemove;
     }
 
     public Collection<? extends Address> removeKeys(NodeFunctions rootNode2, Object object, int i, int j, Float key,

@@ -10,8 +10,8 @@ import components.DB.Record;
 
 public class Reader {
     public static final int SizeofBlock = 200;
-    public static final int PointerSize = 8;
-    public static final int KeySize = 4;
+    public static final int SizeofPointer = 8;
+    public static final int SizeofKey = 4;
     public static final int DiskCapacity = 200_000_000;
 
     public static void read() {
@@ -23,17 +23,17 @@ public class Reader {
         try {
 
             if (file.exists()) {
-                System.out.println("Reading data from " + String.valueOf(filePath));
+                System.out.println("Fetching data from " + String.valueOf(filePath));
                 readFile(String.valueOf(filePath));
             } else {
                 Scanner sc = new Scanner(System.in);
-                System.out.print("Default file path failed! Please input the absolute file path of data.tsv: ");
+                System.out.print("Cannot find file path, please enter manually");
                 filePath = sc.nextLine();
                 File dataFile = new File(String.valueOf(filePath));
                 sc.close();
 
                 if (dataFile.exists()) {
-                    System.out.println("Reading data from " + String.valueOf(filePath));
+                    System.out.println("Fetching data from " + String.valueOf(filePath));
                     readFile(String.valueOf(filePath));
                 }
             }
@@ -61,7 +61,7 @@ public class Reader {
                     BPTree.insertKeyAddrPair(key, address);
                 } catch (Exception e) {
                     error++;
-                    System.out.println("Invalid data found in recordString: " + line);
+                    System.out.println("Invalid data found in line: " + line);
                     break;
                 }
 
