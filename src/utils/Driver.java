@@ -12,6 +12,8 @@ import components.Nodes.NodeFunctions;
 
 public class Driver {
 
+    public static int indexCalls = 0;
+
     public static void runExperiments(Database Database, int invalidDataCount, BPlusTree BPTree) {
         System.out.println("Total records read: " + Database.getNumberOfRecords());
         System.out.println(invalidDataCount + " records skipped due to invalid data");
@@ -92,9 +94,8 @@ public class Driver {
 
     public static void experiment4(Database storage, BPlusTree BPTree) {
         System.out.println("\n\nEXPERIMENT 4: Retrieve those records with 30,000 >= \"numVotes\" <= 40,000:");
-        BPTFunctions helper = new BPTFunctions();
         long startTime = System.nanoTime();
-        ArrayList<Address> addresses = BPTree.getAddressesForKeysBetween(BPlusTree.getRoot(), 30_000, 40_000);
+        ArrayList<Address> addresses = BPTFunctions.getAddressesForKeysBetween(BPlusTree.getRoot(), 30_000, 40_000);
         long endTime = System.nanoTime();
         double averageRating = 0;
         int recordCount = 0;
@@ -107,7 +108,7 @@ public class Driver {
                 recordCount++;
             }
         }
-        System.out.printf("Number of index nodes accessed by process: %d", helper.getNodeReadsEx4());
+        System.out.printf("Number of index nodes accessed by process: %d", indexCalls);
         System.out.printf("\nNumber of data blocks accessed by process: %d", storage.getBlockAccesses());
         System.out.printf("\n\n(Index Search) Number of records found: %d", recordCount);
         System.out.printf("\nAverage of averageRatings of returned records: %.2f",
