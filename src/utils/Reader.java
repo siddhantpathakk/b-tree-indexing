@@ -12,7 +12,7 @@ public class Reader {
     public static final int SizeofBlock = 200;
     public static final int SizeofPointer = 8;
     public static final int SizeofKey = 4;
-    public static final int DiskCapacity = 200_000_000;
+    public static final int DiskCapacity = 200000000;
 
     public static void read() {
         String fileSeparator = System.getProperty("file.separator");
@@ -27,14 +27,16 @@ public class Reader {
                 readFile(String.valueOf(filePath));
             } else {
                 Scanner sc = new Scanner(System.in);
-                System.out.print("Cannot find file path, please enter manually");
+                System.out.print("Cannot find file path, please enter manually: ");
                 filePath = sc.nextLine();
                 File dataFile = new File(String.valueOf(filePath));
                 sc.close();
 
                 if (dataFile.exists()) {
                     System.out.println("Fetching data from " + String.valueOf(filePath));
+                    System.out.println("before");
                     readFile(String.valueOf(filePath));
+                    System.out.println("after");
                 }
             }
         } catch (Exception e) {
@@ -47,10 +49,15 @@ public class Reader {
             String line;
             Storage storage = new Storage(DiskCapacity, SizeofBlock);
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
+            System.out.println("hereaaaa");
             reader.readLine();
+            System.out.println("bbbbbb");
             int error = 0;
 
+            
+            System.out.println("ccccc");
             BPlusTree BPTree = new BPlusTree();
+            System.out.println("dddddd");
 
             while ((line = reader.readLine()) != null) {
                 String[] recordString = line.split("\t");

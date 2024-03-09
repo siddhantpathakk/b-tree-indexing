@@ -19,8 +19,8 @@ public class BPlusTree {
         LeafNode root = new LeafNode();
         root.setRoot(true);
         root.setLeaf(true);
-        rootNode.setRoot(true);
         rootNode = root;
+        rootNode.setRoot(true);
     }
 
     public static NodeFunctions createNode() {
