@@ -29,7 +29,7 @@ public class Storage {
 
     public Address writeRecordToStorage(Record record) {
         numRecords++;
-        int blockPointer = getFirstAvailableBlockId();
+        int blockPointer = getAvailableBlock();
         return this.insertRecordIntoBlock(blockPointer, record);
     }
 
@@ -37,7 +37,7 @@ public class Storage {
         return numRecords;
     }
 
-    private int getFirstAvailableBlockId() {
+    private int getAvailableBlock() {
         if (availableBlocks.isEmpty())
             return -1;
         return availableBlocks.iterator().next();
@@ -67,9 +67,9 @@ public class Storage {
         return block;
     }
 
-    public Record getRecord(Address add) {
-        Block block = getBlock(add.getBlockId());
-        return block.getRecord(add.getOffset());
+    public Record getRecord(Address address) {
+        Block block = getBlock(address.getBlockId());
+        return block.getRecord(address.getOffset());
     }
 
     public void deleteRecord(ArrayList<Address> addList) {

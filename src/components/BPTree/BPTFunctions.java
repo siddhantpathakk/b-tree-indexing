@@ -84,9 +84,9 @@ public class BPTFunctions {
         LeafNode underUtilizedLeaf = (LeafNode) underUtilizedNode;
         LeafNode leftSibling = (LeafNode) underUtilizedLeaf.getLeftSibling();
         LeafNode rightSibling = (LeafNode) underUtilizedLeaf.getRightSibling();
-        if (leftSibling != null && leftSibling.canDonate(BPlusTree.SizeofNode)) {
+        if (leftSibling != null && leftSibling.canGiveKey()) {
             moveOneKeyLeafNode(leftSibling, underUtilizedLeaf, true, parent, parentKeyIndex);
-        } else if (rightSibling != null && rightSibling.canDonate(BPlusTree.SizeofNode)) {
+        } else if (rightSibling != null && rightSibling.canGiveKey()) {
             moveOneKeyLeafNode(rightSibling, underUtilizedLeaf, false, parent, parentKeyIndex + 1);
 
         } else if (leftSibling != null
@@ -123,10 +123,10 @@ public class BPTFunctions {
             throw new IllegalStateException(
                     "Both leftInNodeSibling and rightInNodeSibling is null for " + underUtilizedNode);
 
-        if (leftInNodeSibling != null && leftInNodeSibling.canDonate(BPlusTree.SizeofNode)) {
+        if (leftInNodeSibling != null && leftInNodeSibling.canGiveKey()) {
             moveOneKeyInternalNode(leftInNodeSibling, (InternalNode) underUtilizedInternalNode, true, parent,
                     parentKeyIndex);
-        } else if (rightInNodeSibling != null && rightInNodeSibling.canDonate(BPlusTree.SizeofNode)) {
+        } else if (rightInNodeSibling != null && rightInNodeSibling.canGiveKey()) {
             moveOneKeyInternalNode(rightInNodeSibling, (InternalNode) underUtilizedInternalNode, false, parent,
                     parentKeyIndex + 1);
 
@@ -164,15 +164,15 @@ public class BPTFunctions {
             key = receiver.keys.get(0);
         }
 
-        int ptrIdx = receiver.getIndexOfKey(key, true);
-        int keyIdx = ptrIdx - 1;
+        int pointerIndex = receiver.getIndexOfKey(key, true);
+        int keyIndex = pointerIndex - 1;
 
         Float lowerbound = checkForLowerbound(key);
         Float newLowerBound;
-        if (receiver.keys.size() >= (keyIdx + 1)) {
+        if (receiver.keys.size() >= (keyIndex + 1)) {
             newLowerBound = lowerbound;
         } else {
-            newLowerBound = checkForLowerbound(receiver.keys.get(keyIdx + 1));
+            newLowerBound = checkForLowerbound(receiver.keys.get(keyIndex + 1));
             parent.updateKeyAt(inBetweenKeyIdx - 1, key, false, checkForLowerbound(key));
         }
         parent.keys.set(inBetweenKeyIdx, newLowerBound);
@@ -203,7 +203,7 @@ public class BPTFunctions {
             int rightPointerIdx, int inBetweenKeyIdx, boolean targetNodeInsufficient) {
 
         targetNode.keys.addAll(sacrificialNode.keys);
-        targetNode.keyAddrMap.putAll(sacrificialNode.keyAddrMap);
+        targetNode.keyAddressMap.putAll(sacrificialNode.keyAddressMap);
 
         if (sacrificialNode.getRightSibling() != null) {
             sacrificialNode.getRightSibling().setLeftSibling(targetNode);
@@ -223,16 +223,16 @@ public class BPTFunctions {
         Float key;
         if (donorOnLeft) {
             Float donorKey = donor.keys.get(donor.keys.size() - 1);
-            receiver.insertKeyAddrArrPair(donorKey, donor.getAddressesForKey(donorKey));
-            donor.removeKeyInMap(donorKey);
+            receiver.insertToKeyAddressMap(donorKey, donor.getAddressesForKey(donorKey));
+            donor.removeKeyFromMap(donorKey);
 
             receiver.insertKeyAt(0, donorKey);
             donor.keys.remove(donor.keys.size() - 1);
             key = receiver.keys.get(0);
         } else {
             Float donorKey = donor.keys.get(0);
-            receiver.insertKeyAddrArrPair(donorKey, donor.getAddressesForKey(donorKey));
-            donor.removeKeyInMap(donorKey);
+            receiver.insertToKeyAddressMap(donorKey, donor.getAddressesForKey(donorKey));
+            donor.removeKeyFromMap(donorKey);
 
             receiver.insertKeyAt(receiver.keys.size(), donorKey);
             donor.keys.remove(0);
@@ -262,12 +262,12 @@ public class BPTFunctions {
             parent.keys.set(inBetweenKeyIdx - 1, key);
         }
 
-        int ptrIdx = receiver.getIndexOfKey(key, true);
-        int keyIdx = ptrIdx - 1;
+        int pointerIndex = receiver.getIndexOfKey(key, true);
+        int keyIndex = pointerIndex - 1;
 
         LeafNode LeafNode = (LeafNode) receiver;
 
-        if (LeafNode.keys.size() < (keyIdx + 1))
+        if (LeafNode.keys.size() < (keyIndex + 1))
             parent.updateKeyAt(inBetweenKeyIdx - 1, parent.getChild(inBetweenKeyIdx).keys.get(0), false,
                     checkForLowerbound(key));
 

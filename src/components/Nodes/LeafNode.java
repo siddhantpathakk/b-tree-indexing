@@ -7,7 +7,7 @@ import components.Database.Address;
 
 public class LeafNode extends NodeFunctions {
 
-    public TreeMap<Float, ArrayList<Address>> keyAddrMap;
+    public TreeMap<Float, ArrayList<Address>> keyAddressMap;
     protected ArrayList<Address> addresses;
     private LeafNode rightSibling;
     private LeafNode leftSibling;
@@ -20,40 +20,35 @@ public class LeafNode extends NodeFunctions {
     }
 
     public ArrayList<Address> findRecord(Float key) {
-        return this.keyAddrMap.containsKey(key) || this.keys.contains(key) ? keyAddrMap.get(key) : null;
+        return this.keyAddressMap.containsKey(key) || this.keys.contains(key) ? keyAddressMap.get(key) : null;
     }
 
     public ArrayList<Address> getAddressesForKey(Float key) {
-        return keyAddrMap.get(key);
+        return keyAddressMap.get(key);
     }
 
     public void addRecord(Float key, Address addr) {
         int n = SizeofNode;
-
-        // new node (no map)
         if (this.keys == null) {
-            this.keyAddrMap = new TreeMap<Float, ArrayList<Address>>();
+            this.keyAddressMap = new TreeMap<Float, ArrayList<Address>>();
             this.addresses = new ArrayList<Address>();
 
             this.addresses.add(addr);
-            this.keyAddrMap.put(key, addresses);
+            this.keyAddressMap.put(key, addresses);
 
             this.keys = new ArrayList<Float>();
             insertInOrder(this.keys, key);
-            // handle duplicate key key -> [addr1, addr2, ...]
-        } else if (this.keyAddrMap.containsKey(key) || this.keys.contains(key)) {
-            ArrayList<Address> existingRecords = keyAddrMap.get(key);
+        } else if (this.keyAddressMap.containsKey(key) || this.keys.contains(key)) {
+            ArrayList<Address> existingRecords = keyAddressMap.get(key);
             existingRecords.add(addr);
-            keyAddrMap.put(key, existingRecords);
-            // no duplicates but has space
+            keyAddressMap.put(key, existingRecords);
         } else if (this.keys.size() < n) {
             this.addresses = new ArrayList<Address>();
             this.addresses.add(addr);
-            this.keyAddrMap.put(key, addresses);
+            this.keyAddressMap.put(key, addresses);
             insertInOrder(this.keys, key);
-            // need to split since full
         } else {
-            this.splitLeafNode(key, addr);
+            this.splitLeaf(key, addr);
         }
 
     }
@@ -65,12 +60,12 @@ public class LeafNode extends NodeFunctions {
         keys.add(i, key);
     }
 
-    public void insertKeyAddrArrPair(Float key, ArrayList<Address> addr) {
-        keyAddrMap.put(key, addr);
+    public void insertToKeyAddressMap(Float key, ArrayList<Address> addr) {
+        keyAddressMap.put(key, addr);
     }
 
-    public void removeKeyInMap(Float key) {
-        keyAddrMap.remove(key);
+    public void removeKeyFromMap(Float key) {
+        keyAddressMap.remove(key);
     }
 
     public void clear() {
@@ -83,22 +78,22 @@ public class LeafNode extends NodeFunctions {
         return rightSibling;
     }
 
-    public void setRightSibling(LeafNode sibling) {
-        rightSibling = sibling;
+    public void setRightSibling(LeafNode right) {
+        rightSibling = right;
     }
 
     public LeafNode getLeftSibling() {
         return leftSibling;
     }
 
-    public void setLeftSibling(LeafNode sibling) {
-        leftSibling = sibling;
+    public void setLeftSibling(LeafNode left) {
+        leftSibling = left;
     }
 
     @Override
     public String toString() {
-        return String.format("\n--------LEAF NODE CONTAINS: map %s records %s, rightSibling ------------\n",
-                keyAddrMap.toString(),
+        return String.format("\n\tContents of Leaf Node: map %s records %s, rightSibling\n",
+                keyAddressMap.toString(),
                 addresses, rightSibling);
     }
 

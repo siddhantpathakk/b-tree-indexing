@@ -30,8 +30,7 @@ public class NodeFunctions {
     }
 
     public int getIndexOfKey(Float key, boolean upperBound) {
-        int keyCount = keys.size();
-        return binarySearchKeyIndex(0, keyCount - 1, key, upperBound);
+        return binarySearchKeyIndex(0, keys.size() - 1, key, upperBound);
     }
 
     public void insertKeyAt(int index, Float key) {
@@ -39,24 +38,24 @@ public class NodeFunctions {
     }
 
     public static void insertKeyInOrder(ArrayList<Float> keys, Float key) {
-        int i = 0;
-        while (i < keys.size() && keys.get(i) < key) {
-            i++;
+        int index = 0;
+        while (index < keys.size() && keys.get(index) < key) {
+            index++;
         }
-        keys.add(i, key);
+        keys.add(index, key);
     }
 
     public void insertChildInOrder(InternalNode parent, InternalNode child) {
-        int i = 0;
-        Float childToSort = child.keys.get(0);
-        while (i < parent.keys.size() && parent.keys.get(i) < childToSort) {
-            i++;
+        int index = 0;
+        Float childToInsert = child.keys.get(0);
+        while (index < parent.keys.size() && parent.keys.get(index) < childToInsert) {
+            index++;
         }
-        parent.children.add(i + 1, child);
+        parent.children.add(index + 1, child);
     }
 
-    public void updateKeyAt(int keyIndex, Float newKey, boolean leafNotUpdated, Float lowerbound) {
-        if (keyIndex >= 0 && keyIndex < keys.size() && !leafNotUpdated) {
+    public void updateKeyAt(int keyIndex, Float newKey, boolean isLeafUpdated, Float lowerbound) {
+        if (keyIndex >= 0 && keyIndex < keys.size() && !isLeafUpdated) {
             keys.set(keyIndex, newKey);
         }
         if (parent != null && !parent.isLeaf()) {
@@ -72,7 +71,7 @@ public class NodeFunctions {
         }
     }
 
-    public boolean isUnderUtilized(int maxKeyCount) {
+    public boolean hasInsufficientKeys(int maxKeyCount) {
         if (isRoot()) {
             return (this.keys.size() < 1);
         } else if (isLeaf()) {
@@ -82,13 +81,14 @@ public class NodeFunctions {
         }
     }
 
-    public boolean canDonate(int maxKeyCount) {
+    public boolean canGiveKey() {
+        int maxKeyCount = BPlusTree.SizeofNode;
         if (!isLeaf())
             return keys.size() - 1 >= maxKeyCount / 2;
         return keys.size() - 1 >= (maxKeyCount + 1) / 2;
     }
 
-    public void insertNewNodeToParent(LeafNode newNode) {
+    public void insertNewNode(LeafNode newNode) {
         int index = 0;
         boolean insertedNode = false;
 
@@ -103,7 +103,7 @@ public class NodeFunctions {
                 index++;
             }
 
-            if (insertedNode == false) {
+            if (!insertedNode) {
                 this.getParent().getChildren().add(newNode);
                 this.getParent().keys.add(newNode.keys.get(0));
             }
@@ -116,34 +116,34 @@ public class NodeFunctions {
         newNode.setParent(this.getParent());
 
         if (this.getParent().keys.size() > SizeofNode) {
-            this.getParent().splitInternalNode();
+            this.getParent().splitInternal();
         }
     }
 
-    public void splitLeafNode(Float key, Address addr) {
+    public void splitLeaf(Float key, Address address) {
 
-        LeafNode newNode = this.splitLeafNodeHelper(key, addr);
+        LeafNode newNode = this.getNewLeaf(key, address);
 
         if (this.getParent() != null) {
-            this.insertNewNodeToParent(newNode);
+            this.insertNewNode(newNode);
             if (this.getParent().keys.size() > SizeofNode) {
-                this.getParent().splitInternalNode();
+                this.getParent().splitInternal();
             }
         } else {
-            this.createFirstParentNode(newNode);
+            this.createParentNode(newNode);
         }
 
     }
 
-    public void splitInternalNode() {
-        InternalNode sibling = this.splitInternalNodeHelper();
+    public void splitInternal() {
+        InternalNode sibling = this.getNewSibling();
         if (this.getParent() != null) {
             insertChildInOrder(this.getParent(), sibling);
             sibling.setParent(this.getParent());
             insertKeyInOrder(this.getParent().keys, sibling.keys.get(0));
             sibling.keys.remove(0);
             if (this.getParent().keys.size() > SizeofNode) {
-                this.getParent().splitInternalNode();
+                this.getParent().splitInternal();
             }
         } else {
             InternalNode newRoot = new InternalNode();
@@ -222,11 +222,11 @@ public class NodeFunctions {
     }
 
     public void printNode() {
-        Set<Float> keys = ((LeafNode) this).keyAddrMap.keySet();
+        Set<Float> keys = ((LeafNode) this).keyAddressMap.keySet();
         System.out.println(keys);
     }
 
-    public void createFirstParentNode(LeafNode newNode) {
+    public void createParentNode(LeafNode newNode) {
         InternalNode newParent = new InternalNode();
         newParent.keys = new ArrayList<Float>();
         newParent.addChild(this);
@@ -247,26 +247,26 @@ public class NodeFunctions {
 
     }
 
-    public LeafNode splitLeafNodeHelper(Float key, Address addr) {
+    public LeafNode getNewLeaf(Float key, Address address) {
         LeafNode newNode = new LeafNode();
         ((LeafNode) this).addresses = new ArrayList<Address>();
-        ((LeafNode) this).addresses.add(addr);
-        ((LeafNode) this).keyAddrMap.put(key, ((LeafNode) this).addresses);
+        ((LeafNode) this).addresses.add(address);
+        ((LeafNode) this).keyAddressMap.put(key, ((LeafNode) this).addresses);
         int n = SizeofNode - minLeafNodeSize + 1;
-        int i = 0;
+        int index = 0;
         Float fromKey = 0.0f;
 
-        for (Map.Entry<Float, ArrayList<Address>> entry : ((LeafNode) this).keyAddrMap.entrySet()) {
-            if (i == n) {
+        for (Map.Entry<Float, ArrayList<Address>> entry : ((LeafNode) this).keyAddressMap.entrySet()) {
+            if (index == n) {
                 fromKey = entry.getKey();
                 break;
             }
-            i++;
+            index++;
         }
 
-        SortedMap<Float, ArrayList<Address>> lastnKeys = ((LeafNode) this).keyAddrMap.subMap(fromKey, true,
-                ((LeafNode) this).keyAddrMap.lastKey(), true);
-        newNode.keyAddrMap = new TreeMap<Float, ArrayList<Address>>(lastnKeys);
+        SortedMap<Float, ArrayList<Address>> lastnKeys = ((LeafNode) this).keyAddressMap.subMap(fromKey, true,
+                ((LeafNode) this).keyAddressMap.lastKey(), true);
+        newNode.keyAddressMap = new TreeMap<Float, ArrayList<Address>>(lastnKeys);
         lastnKeys.clear();
 
         insertKeyInOrder(this.keys, key);
@@ -283,7 +283,7 @@ public class NodeFunctions {
         return newNode;
     }
 
-    public InternalNode splitInternalNodeHelper() {
+    public InternalNode getNewSibling() {
 
         InternalNode currentParent = (InternalNode) (this);
         InternalNode newParent = new InternalNode();

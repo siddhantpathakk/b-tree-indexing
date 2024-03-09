@@ -2,7 +2,6 @@
 package components.BPTree;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import components.Database.Address;
@@ -69,11 +68,6 @@ public class BPlusTree {
         }
     }
 
-    // public static void setRoot(NodeFunctions root) {
-    // rootNode = root;
-    // rootNode.setRoot(true);
-    // }
-
     public static NodeFunctions getRoot() {
         return rootNode;
     }
@@ -93,31 +87,31 @@ public class BPlusTree {
 
             addressesToDelete.addAll(leafNode.getAddressesForKey(key));
             leafNode.keys.remove(keyIndex);
-            leafNode.removeKeyInMap(key);
+            leafNode.removeKeyFromMap(key);
 
-            int ptrIdx = node.getIndexOfKey(key, true);
-            keyIndex = ptrIdx - 1;
+            int pointerIndex = node.getIndexOfKey(key, true);
+            keyIndex = pointerIndex - 1;
 
             if (leafNode.keys.size() >= (keyIndex + 1)) {
                 Float newLowerBound = lowerbound;
                 List<Float> keys = leafNode.keys;
-                leafNode.updateKeyAt(ptrIdx - 1, keys.get(0), false, newLowerBound);
+                leafNode.updateKeyAt(pointerIndex - 1, keys.get(0), false, newLowerBound);
             } else {
                 Float newLowerBound = BPTFunctions.checkForLowerbound(leafNode.keys.get(keyIndex + 1));
                 List<Float> keys = leafNode.keys;
-                leafNode.updateKeyAt(ptrIdx - 1, keys.get(0), true, newLowerBound);
+                leafNode.updateKeyAt(pointerIndex - 1, keys.get(0), true, newLowerBound);
             }
         } else {
 
             InternalNode nonLeafNode = (InternalNode) node;
-            int ptrIdx = node.getIndexOfKey(key, true);
-            int keyIndex = ptrIdx - 1;
+            int pointerIndex = node.getIndexOfKey(key, true);
+            int keyIndex = pointerIndex - 1;
 
-            NodeFunctions next = nonLeafNode.getChild(ptrIdx);
-            addressesToDelete = deleteKeyRecursive(next, nonLeafNode, ptrIdx, keyIndex, key, lowerbound);
+            NodeFunctions next = nonLeafNode.getChild(pointerIndex);
+            addressesToDelete = deleteKeyRecursive(next, nonLeafNode, pointerIndex, keyIndex, key, lowerbound);
         }
 
-        if (node.isUnderUtilized(SizeofNode)) {
+        if (node.hasInsufficientKeys(SizeofNode)) {
             BPTFunctions.handleInvalidTree(node, parent, parentPointerIndex, parentKeyIndex);
         }
 
@@ -131,14 +125,14 @@ public class BPlusTree {
     public ArrayList<Address> searchValue(NodeFunctions node, Float key) {
         BPTFunctions.incrementNodeReads();
         if (node.isLeaf()) {
-            int ptrIdx = node.getIndexOfKey(key, false);
-            if (ptrIdx >= 0 && ptrIdx < node.keys.size() && key.equals(node.keys.get(ptrIdx))) {
+            int pointerIndex = node.getIndexOfKey(key, false);
+            if (pointerIndex >= 0 && pointerIndex < node.keys.size() && key.equals(node.keys.get(pointerIndex))) {
                 return ((LeafNode) node).getAddressesForKey(key);
             }
             return null;
         } else {
-            int ptrIdx = node.getIndexOfKey(key, false);
-            NodeFunctions childNode = ((InternalNode) node).getChild(ptrIdx);
+            int pointerIndex = node.getIndexOfKey(key, false);
+            NodeFunctions childNode = ((InternalNode) node).getChild(pointerIndex);
             return (searchValue(childNode, key));
         }
     }
@@ -162,11 +156,5 @@ public class BPlusTree {
         }
         level++;
         return level;
-    }
-
-    public Collection<? extends Address> removeKeys(NodeFunctions rootNode2, Object object, int i, int j, Float key,
-            Float key2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'removeKeys'");
     }
 }
