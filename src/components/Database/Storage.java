@@ -110,12 +110,4 @@ public class Storage {
         }
         return blkAccesses;
     }
-
-    public void ex1() {
-        System.out.println("\nEXPERIMENT 1: Store the data from the data file and display the following statisitcs:");
-        System.out.printf("Number of records: %d\n", this.getNumberOfRecords());
-        System.out.println(String.format("Size of record: %d Bytes", Record.getRecordSize()));
-        System.out.printf("Number of records stored in a block: %d\n", Block.getMaximumRecordCount());
-        System.out.println(String.format("Number of blocks for storing data: %d\n", this.getFilledBlocksCount()));
-    }
 }

@@ -45,7 +45,7 @@ public class Driver {
     public static void experiment1(Storage storage) {
         System.out.println("\nEXPERIMENT 1: Store the data on the disk and report the stats");
         System.out.printf("Number of records: %d\n", storage.getNumberOfRecords());
-        System.out.printf("Size of record: %d Bytes", Record.getRecordSize());
+        System.out.printf("Size of record: %d Bytes\n", Record.getRecordSize());
         System.out.printf("Number of records stored in a block: %d\n", Block.getMaximumRecordCount());
         System.out.printf("Number of blocks for storing data: %d\n", storage.getFilledBlocksCount());
     }
@@ -130,7 +130,6 @@ public class Driver {
         }
         long endTime = System.nanoTime();
         System.out.printf("Number of records to delete: %d\n", addressesToRemove.size());
-        System.out.println("naltgag");
         System.out.printf("Number of Nodes in updated B+ tree: %d\n", BPTree.countNodes(BPlusTree.getRoot()));
         System.out.printf("Number of Levels in updated B+ tree: %d\n", BPTree.getDepth(BPlusTree.getRoot()));
         System.out.printf("\nContent of the root node of the updated B+ tree(only the keys): %s\n",

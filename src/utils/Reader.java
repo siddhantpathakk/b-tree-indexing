@@ -34,9 +34,7 @@ public class Reader {
 
                 if (dataFile.exists()) {
                     System.out.println("Fetching data from " + String.valueOf(filePath));
-                    System.out.println("before");
                     readFile(String.valueOf(filePath));
-                    System.out.println("after");
                 }
             }
         } catch (Exception e) {
@@ -49,15 +47,11 @@ public class Reader {
             String line;
             Storage storage = new Storage(DiskCapacity, SizeofBlock);
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
-            System.out.println("hereaaaa");
             reader.readLine();
-            System.out.println("bbbbbb");
             int error = 0;
 
             
-            System.out.println("ccccc");
             BPlusTree BPTree = new BPlusTree();
-            System.out.println("dddddd");
 
             while ((line = reader.readLine()) != null) {
                 String[] recordString = line.split("\t");
