@@ -1,4 +1,4 @@
-package components.DB;
+package components.Database;
 
 public class Record {
     private String tConst; // 10 bytes
@@ -12,7 +12,7 @@ public class Record {
         this.averageRating = averageRating;
         this.numVotes = numVotes;
     }
-    
+
     // This is assuming all records must be NOT NULL
     public Record() {
         this.tConst = "";
@@ -37,7 +37,7 @@ public class Record {
         return numVotes;
     }
 
-    // Setter 
+    // Setter
     public void setTConst(String tConst) {
         this.tConst = tConst;
     }
@@ -59,4 +59,3 @@ public class Record {
                 '}';
     }
 }
-

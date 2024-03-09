@@ -1,5 +1,4 @@
-package components.DB;
-
+package components.Database;
 
 public class Address {
     int blockID;
@@ -9,10 +8,11 @@ public class Address {
         this.blockID = blockID;
         this.offset = offset;
     }
-    
+
     public int getBlockId() {
         return blockID;
     }
+
     public int getOffset() {
         return offset;
     }

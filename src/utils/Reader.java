@@ -4,9 +4,9 @@ import java.io.*;
 import java.util.Scanner;
 
 import components.BPTree.BPlusTree;
-import components.DB.Address;
-import components.DB.Database;
-import components.DB.Record;
+import components.Database.Address;
+import components.Database.Record;
+import components.Database.Storage;
 
 public class Reader {
     public static final int SizeofBlock = 200;
@@ -45,7 +45,7 @@ public class Reader {
     public static void readFile(String filePath) {
         try {
             String line;
-            Database Database = new Database(DiskCapacity, SizeofBlock);
+            Storage storage = new Storage(DiskCapacity, SizeofBlock);
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             reader.readLine();
             int error = 0;
@@ -56,7 +56,7 @@ public class Reader {
                 String[] recordString = line.split("\t");
                 try {
                     Record record = createRecord(recordString);
-                    Address address = Database.writeRecordToStorage(record);
+                    Address address = storage.writeRecordToStorage(record);
                     float key = record.getNumVotes();
                     BPTree.insertKeyAddrPair(key, address);
                 } catch (Exception e) {
@@ -67,7 +67,7 @@ public class Reader {
 
             }
             reader.close();
-            Driver.runExperiments(Database, error, BPTree);
+            Driver.runExperiments(storage, error, BPTree);
 
         } catch (Exception e) {
             System.out.println(e);

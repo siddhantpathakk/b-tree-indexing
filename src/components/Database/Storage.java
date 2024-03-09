@@ -1,39 +1,36 @@
-package components.DB;
+package components.Database;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+public class Storage {
 
-public class Database {
-    
     private Block[] blocks;
     private Set<Integer> availableBlocks;
     private Set<Integer> filledBlocks;
     int diskSize;
-    int blkSize;
+    int blockSize;
     private int numRecords = 0;
 
     private static int blockAccesses = 0;
 
-    public Database(int diskSize, int blkSize) {
+    public Storage(int diskSize, int blockSize) {
         this.diskSize = diskSize;
-        this.blkSize = blkSize;
-        this.blocks = new Block[diskSize / blkSize];
+        this.blockSize = blockSize;
+        this.blocks = new Block[diskSize / blockSize];
         this.availableBlocks = new HashSet<>();
         this.filledBlocks = new HashSet<>();
-        // all block are avail at the start
         for (int i = 0; i < blocks.length; i++) {
-            blocks[i] = new Block(blkSize);
+            blocks[i] = new Block(blockSize);
             availableBlocks.add(i);
         }
     }
 
-    
-    public Address writeRecordToStorage(Record rec) {
+    public Address writeRecordToStorage(Record record) {
         numRecords++;
-        int blockPtr = getFirstAvailableBlockId();
-        return this.insertRecordIntoBlock(blockPtr, rec);
+        int blockPointer = getFirstAvailableBlockId();
+        return this.insertRecordIntoBlock(blockPointer, record);
     }
 
     public int getNumberOfRecords() {
@@ -41,27 +38,28 @@ public class Database {
     }
 
     private int getFirstAvailableBlockId() {
-        if (availableBlocks.isEmpty()) return -1;
+        if (availableBlocks.isEmpty())
+            return -1;
         return availableBlocks.iterator().next();
     }
 
-    private Address insertRecordIntoBlock(int blockPtr, Record rec) {
-        if (blockPtr == -1) return null;
-        int offset = blocks[blockPtr].insertRecord(rec);
-        filledBlocks.add(blockPtr);
-        if (!blocks[blockPtr].blockAvailable()) availableBlocks.remove(blockPtr);
-        return new Address(blockPtr, offset);
+    private Address insertRecordIntoBlock(int blockPointer, Record record) {
+        if (blockPointer == -1)
+            return null;
+        int offset = blocks[blockPointer].insertRecord(record);
+        filledBlocks.add(blockPointer);
+        if (!blocks[blockPointer].blockAvailable())
+            availableBlocks.remove(blockPointer);
+        return new Address(blockPointer, offset);
     }
 
     public int getFilledBlocksCount() {
         return filledBlocks.size();
     }
 
-    
     public int getBlockAccesses() {
         return blockAccesses;
     }
-
 
     private Block getBlock(int blockNumber) {
         Block block = blocks[blockNumber];
@@ -73,7 +71,6 @@ public class Database {
         Block block = getBlock(add.getBlockId());
         return block.getRecord(add.getOffset());
     }
-
 
     public void deleteRecord(ArrayList<Address> addList) {
         for (Address add : addList) {
@@ -88,40 +85,37 @@ public class Database {
         }
     }
 
-    // bruteforce search, return number of block accesses
     public int bruteForceSearch(int numVotes, int numVotes_upperBound) {
-        Record rec;
+        Record record;
         float recNumVotes;
         int blkAccesses = 0;
         ArrayList<Record> res = new ArrayList<>();
         for (Integer blkPtr : this.filledBlocks) {
             blkAccesses++;
             Block block = this.blocks[blkPtr];
-            int blockSize = block.getCurrSize();
-            
+            int blockSize = block.getCurrentRecordCount();
+
             for (int offset = 0; offset < blockSize; offset++) {
-                rec = block.getRecord(offset);
-                recNumVotes = rec.getNumVotes();
+                record = block.getRecord(offset);
+                recNumVotes = record.getNumVotes();
                 if (recNumVotes >= numVotes && recNumVotes <= numVotes_upperBound) {
-                    res.add(rec);
+                    res.add(record);
                 }
             }
         }
         if (res.isEmpty()) {
             System.out.println("\n(Bruteforce) No records found");
-        } else{
+        } else {
             System.out.printf("\n(Bruteforce) No. of records found: %d", res.size());
         }
         return blkAccesses;
     }
 
-
-
     public void ex1() {
-        System.out.println("\nEXPERIMENT 1: store the data from data.tsv on the disk and report statistics:");
+        System.out.println("\nEXPERIMENT 1: Store the data from the data file and display the following statisitcs:");
         System.out.printf("Number of records: %d\n", this.getNumberOfRecords());
         System.out.println(String.format("Size of record: %d Bytes", Record.getRecordSize()));
-        System.out.printf("Number of records stored in a block: %d\n", Block.getmaxRecordCount());
+        System.out.printf("Number of records stored in a block: %d\n", Block.getMaximumRecordCount());
         System.out.println(String.format("Number of blocks for storing data: %d\n", this.getFilledBlocksCount()));
     }
 }

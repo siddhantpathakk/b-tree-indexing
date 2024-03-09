@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import components.BPTree.BPlusTree;
-import components.DB.Address;
+import components.Database.Address;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,9 +29,9 @@ public class NodeFunctions {
         this.minInternalNodeSize = SizeofNode / 2;
     }
 
-    public int getIdxOfKey(Float key, boolean upperBound) {
+    public int getIndexOfKey(Float key, boolean upperBound) {
         int keyCount = keys.size();
-        return binSearchKeyIdx(0, keyCount - 1, key, upperBound);
+        return binarySearchKeyIndex(0, keyCount - 1, key, upperBound);
     }
 
     public void insertKeyAt(int index, Float key) {
@@ -155,7 +155,8 @@ public class NodeFunctions {
             this.setParent(newRoot);
             sibling.setParent(newRoot);
 
-            BPlusTree.setRoot(newRoot);
+            BPlusTree.rootNode = newRoot;
+            BPlusTree.rootNode.setRoot(true);
         }
     }
 
@@ -193,23 +194,24 @@ public class NodeFunctions {
             this.setRoot(false);
             parentNode.setRoot(true);
             parentNode.setLeaf(false);
-            BPlusTree.setRoot(parentNode);
+            BPlusTree.rootNode = parentNode;
+            BPlusTree.rootNode.setRoot(true);
         } else {
             parentNode.setLeaf(false);
         }
         this.parent = parentNode;
     }
 
-    private int binSearchKeyIdx(int left, int right, Float key, boolean upperBound) {
+    private int binarySearchKeyIndex(int left, int right, Float key, boolean upperBound) {
         if (left > right)
             return left;
         int middle = (left + right) / 2;
         Float middleKey = keys.get(middle);
 
         if (middleKey < key) {
-            return binSearchKeyIdx(middle + 1, right, key, upperBound);
+            return binarySearchKeyIndex(middle + 1, right, key, upperBound);
         } else if (middleKey > key) {
-            return binSearchKeyIdx(left, middle - 1, key, upperBound);
+            return binarySearchKeyIndex(left, middle - 1, key, upperBound);
         } else {
             while (middle < keys.size() && keys.get(middle).equals(key))
                 middle++;

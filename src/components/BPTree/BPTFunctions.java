@@ -2,7 +2,7 @@ package components.BPTree;
 
 import java.util.ArrayList;
 
-import components.DB.Address;
+import components.Database.Address;
 import components.Nodes.InternalNode;
 import components.Nodes.LeafNode;
 import components.Nodes.NodeFunctions;
@@ -25,12 +25,12 @@ public class BPTFunctions {
         Driver.indexCalls++;
         BPTFunctions.incrementNodeReads();
         if (!node.isLeaf()) {
-            int ptr = node.getIdxOfKey(minKey, true);
+            int ptr = node.getIndexOfKey(minKey, true);
             NodeFunctions childNode = ((InternalNode) node).getChild(ptr);
             return getAddressesForKeysBetween(childNode, minKey, maxKey);
         } else {
             ArrayList<Address> addresses = new ArrayList<>();
-            int ptr = node.getIdxOfKey(minKey, false);
+            int ptr = node.getIndexOfKey(minKey, false);
             LeafNode leafNode = (LeafNode) node;
             while (true) {
                 if (ptr == leafNode.keys.size()) {
@@ -164,7 +164,7 @@ public class BPTFunctions {
             key = receiver.keys.get(0);
         }
 
-        int ptrIdx = receiver.getIdxOfKey(key, true);
+        int ptrIdx = receiver.getIndexOfKey(key, true);
         int keyIdx = ptrIdx - 1;
 
         Float lowerbound = checkForLowerbound(key);
@@ -262,7 +262,7 @@ public class BPTFunctions {
             parent.keys.set(inBetweenKeyIdx - 1, key);
         }
 
-        int ptrIdx = receiver.getIdxOfKey(key, true);
+        int ptrIdx = receiver.getIndexOfKey(key, true);
         int keyIdx = ptrIdx - 1;
 
         LeafNode LeafNode = (LeafNode) receiver;

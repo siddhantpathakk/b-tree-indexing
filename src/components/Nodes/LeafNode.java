@@ -3,7 +3,7 @@ package components.Nodes;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import components.DB.Address;
+import components.Database.Address;
 
 public class LeafNode extends NodeFunctions {
 
@@ -19,9 +19,8 @@ public class LeafNode extends NodeFunctions {
         setLeftSibling(null);
     }
 
-    
     public ArrayList<Address> findRecord(Float key) {
-        return this.keyAddrMap.containsKey(key) || this.keys.contains(key) ?  keyAddrMap.get(key) :  null;
+        return this.keyAddrMap.containsKey(key) || this.keys.contains(key) ? keyAddrMap.get(key) : null;
     }
 
     public ArrayList<Address> getAddressesForKey(Float key) {
@@ -38,21 +37,21 @@ public class LeafNode extends NodeFunctions {
 
             this.addresses.add(addr);
             this.keyAddrMap.put(key, addresses);
-            
+
             this.keys = new ArrayList<Float>();
             insertInOrder(this.keys, key);
-        // handle duplicate key key -> [addr1, addr2, ...]
+            // handle duplicate key key -> [addr1, addr2, ...]
         } else if (this.keyAddrMap.containsKey(key) || this.keys.contains(key)) {
             ArrayList<Address> existingRecords = keyAddrMap.get(key);
             existingRecords.add(addr);
             keyAddrMap.put(key, existingRecords);
-        // no duplicates but has space
+            // no duplicates but has space
         } else if (this.keys.size() < n) {
             this.addresses = new ArrayList<Address>();
             this.addresses.add(addr);
             this.keyAddrMap.put(key, addresses);
             insertInOrder(this.keys, key);
-         // need to split since full
+            // need to split since full
         } else {
             this.splitLeafNode(key, addr);
         }
@@ -61,7 +60,8 @@ public class LeafNode extends NodeFunctions {
 
     public static void insertInOrder(ArrayList<Float> keys, Float key) {
         int i = 0;
-        while (i < keys.size() && keys.get(i) < key) i++;
+        while (i < keys.size() && keys.get(i) < key)
+            i++;
         keys.add(i, key);
     }
 
@@ -77,7 +77,6 @@ public class LeafNode extends NodeFunctions {
         keys.clear();
         addresses.clear();
     }
-
 
     // GETTERS AND SETTERS
     public LeafNode getRightSibling() {
@@ -96,10 +95,10 @@ public class LeafNode extends NodeFunctions {
         leftSibling = sibling;
     }
 
-    
     @Override
     public String toString() {
-        return String.format("\n--------LEAF NODE CONTAINS: map %s records %s, rightSibling ------------\n", keyAddrMap.toString(),
+        return String.format("\n--------LEAF NODE CONTAINS: map %s records %s, rightSibling ------------\n",
+                keyAddrMap.toString(),
                 addresses, rightSibling);
     }
 
