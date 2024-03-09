@@ -112,7 +112,7 @@ public class BPlusTree {
         }
 
         if (node.hasInsufficientKeys(SizeofNode)) {
-            BPTFunctions.handleInvalidTree(node, parent, parentPointerIndex, parentKeyIndex);
+            BPTFunctions.fixInvalidTree(node, parent, parentPointerIndex, parentKeyIndex);
         }
 
         return addressesToDelete;

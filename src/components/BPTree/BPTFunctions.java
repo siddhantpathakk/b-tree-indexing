@@ -25,69 +25,69 @@ public class BPTFunctions {
         Driver.indexCalls++;
         BPTFunctions.incrementNodeReads();
         if (!node.isLeaf()) {
-            int ptr = node.getIndexOfKey(minKey, true);
-            NodeFunctions childNode = ((InternalNode) node).getChild(ptr);
+            int pointer = node.getIndexOfKey(minKey, true);
+            NodeFunctions childNode = ((InternalNode) node).getChild(pointer);
             return getAddressesForKeysBetween(childNode, minKey, maxKey);
         } else {
             ArrayList<Address> addresses = new ArrayList<>();
-            int ptr = node.getIndexOfKey(minKey, false);
+            int pointer = node.getIndexOfKey(minKey, false);
             LeafNode leafNode = (LeafNode) node;
             while (true) {
-                if (ptr == leafNode.keys.size()) {
+                if (pointer == leafNode.keys.size()) {
                     if (leafNode.getRightSibling() == null)
                         break;
                     leafNode = (LeafNode) leafNode.getRightSibling();
                     Driver.indexCalls++;
                     BPTFunctions.incrementNodeReads();
-                    ptr = 0;
+                    pointer = 0;
                 }
-                if (leafNode.keys.get(ptr) > maxKey)
+                if (leafNode.keys.get(pointer) > maxKey)
                     break;
-                Float key = leafNode.keys.get(ptr);
+                Float key = leafNode.keys.get(pointer);
                 addresses.addAll(leafNode.getAddressesForKey(key));
-                ptr++;
+                pointer++;
             }
             return (addresses.isEmpty() ? null : addresses);
         }
     }
 
-    public static void handleInvalidTree(NodeFunctions underUtilizedNode, InternalNode parent, int parentPointerIndex,
+    public static void fixInvalidTree(NodeFunctions invalidNode, InternalNode parent, int parentPointerIndex,
             int parentKeyIndex) throws IllegalStateException {
         if (parent == null) {
-            handleInvalidRootNode(underUtilizedNode);
-        } else if (underUtilizedNode.isLeaf()) {
-            handleInvalidLeafNode(underUtilizedNode, parent,
+            fixInvalidRootNode(invalidNode);
+        } else if (invalidNode.isLeaf()) {
+            fixInvalidLeafNode(invalidNode, parent,
                     parentPointerIndex, parentKeyIndex);
-        } else if (!underUtilizedNode.isLeaf()) {
-            handleInvalidInternalNode(underUtilizedNode, parent,
+        } else if (!invalidNode.isLeaf()) {
+            handleInvalidInternalNode(invalidNode, parent,
                     parentPointerIndex, parentKeyIndex);
         } else {
             throw new IllegalStateException("state is wrong!");
         }
     }
 
-    public static void handleInvalidRootNode(NodeFunctions underUtilizedNode) {
-        if (underUtilizedNode.isLeaf()) {
-            ((LeafNode) underUtilizedNode).clear();
+    public static void fixInvalidRootNode(NodeFunctions invalidNode) {
+        if (invalidNode.isLeaf()) {
+            ((LeafNode) invalidNode).clear();
         } else {
-            InternalNode nonLeafRoot = (InternalNode) underUtilizedNode;
+            InternalNode nonLeafRoot = (InternalNode) invalidNode;
             NodeFunctions newRoot = nonLeafRoot.getChild(0);
             newRoot.setParent(null);
             BPlusTree.rootNode = newRoot;
         }
     }
 
-    private static void handleInvalidLeafNode(NodeFunctions underUtilizedNode,
+    private static void fixInvalidLeafNode(NodeFunctions invalidNode,
             InternalNode parent,
             int parentPointerIndex,
             int parentKeyIndex) {
-        LeafNode underUtilizedLeaf = (LeafNode) underUtilizedNode;
+        LeafNode underUtilizedLeaf = (LeafNode) invalidNode;
         LeafNode leftSibling = (LeafNode) underUtilizedLeaf.getLeftSibling();
         LeafNode rightSibling = (LeafNode) underUtilizedLeaf.getRightSibling();
         if (leftSibling != null && leftSibling.canGiveKey()) {
-            moveOneKeyLeafNode(leftSibling, underUtilizedLeaf, true, parent, parentKeyIndex);
+            moveKeyInLeaf(leftSibling, underUtilizedLeaf, true, parent, parentKeyIndex);
         } else if (rightSibling != null && rightSibling.canGiveKey()) {
-            moveOneKeyLeafNode(rightSibling, underUtilizedLeaf, false, parent, parentKeyIndex + 1);
+            moveKeyInLeaf(rightSibling, underUtilizedLeaf, false, parent, parentKeyIndex + 1);
 
         } else if (leftSibling != null
                 && (leftSibling.keys.size() + underUtilizedLeaf.keys.size()) <= BPlusTree.SizeofNode) {
@@ -98,12 +98,12 @@ public class BPTFunctions {
         }
     }
 
-    private static void handleInvalidInternalNode(NodeFunctions underUtilizedNode,
+    private static void handleInvalidInternalNode(NodeFunctions invalidNode,
             InternalNode parent,
             int parentPointerIndex,
             int parentKeyIndex) {
 
-        NodeFunctions underUtilizedInternalNode = underUtilizedNode;
+        NodeFunctions underUtilizedInternalNode = invalidNode;
 
         InternalNode leftInNodeSibling = null;
         InternalNode rightInNodeSibling = null;
@@ -121,7 +121,7 @@ public class BPTFunctions {
 
         if (rightInNodeSibling == null && leftInNodeSibling == null)
             throw new IllegalStateException(
-                    "Both leftInNodeSibling and rightInNodeSibling is null for " + underUtilizedNode);
+                    "Both leftInNodeSibling and rightInNodeSibling is null for " + invalidNode);
 
         if (leftInNodeSibling != null && leftInNodeSibling.canGiveKey()) {
             moveOneKeyInternalNode(leftInNodeSibling, (InternalNode) underUtilizedInternalNode, true, parent,
@@ -141,66 +141,66 @@ public class BPTFunctions {
         }
     }
 
-    private static void moveOneKeyInternalNode(InternalNode donor, InternalNode receiver,
-            boolean donorOnLeft, InternalNode parent,
-            int inBetweenKeyIdx) {
+    private static void moveOneKeyInternalNode(InternalNode lender, InternalNode borrower,
+            boolean leftLender, InternalNode parent,
+            int insideKeyIndex) {
         Float key;
 
-        if (donorOnLeft) {
-            donor.keys.remove(donor.keys.size() - 1);
-            NodeFunctions nodeToMove = donor.getChild(donor.keys.size());
-            donor.removeChild(nodeToMove);
-            receiver.addChild(nodeToMove);
+        if (leftLender) {
+            lender.keys.remove(lender.keys.size() - 1);
+            NodeFunctions nodeToMove = lender.getChild(lender.keys.size());
+            lender.removeChild(nodeToMove);
+            borrower.addChild(nodeToMove);
 
-            receiver.keys.add(receiver.keys.size(), receiver.getChild(1).keys.get(0));
-            key = receiver.keys.get(0);
+            borrower.keys.add(borrower.keys.size(), borrower.getChild(1).keys.get(0));
+            key = borrower.keys.get(0);
         } else {
-            donor.keys.remove(0);
-            NodeFunctions nodeToMove = donor.getChild(0);
-            donor.removeChild(nodeToMove);
-            receiver.addChild(nodeToMove);
+            lender.keys.remove(0);
+            NodeFunctions nodeToMove = lender.getChild(0);
+            lender.removeChild(nodeToMove);
+            borrower.addChild(nodeToMove);
 
-            receiver.keys.add(receiver.keys.size(), receiver.getChild(1).keys.get(0));
-            key = receiver.keys.get(0);
+            borrower.keys.add(borrower.keys.size(), borrower.getChild(1).keys.get(0));
+            key = borrower.keys.get(0);
         }
 
-        int pointerIndex = receiver.getIndexOfKey(key, true);
+        int pointerIndex = borrower.getIndexOfKey(key, true);
         int keyIndex = pointerIndex - 1;
 
         Float lowerbound = checkForLowerbound(key);
         Float newLowerBound;
-        if (receiver.keys.size() >= (keyIndex + 1)) {
+        if (borrower.keys.size() >= (keyIndex + 1)) {
             newLowerBound = lowerbound;
         } else {
-            newLowerBound = checkForLowerbound(receiver.keys.get(keyIndex + 1));
-            parent.updateKeyAt(inBetweenKeyIdx - 1, key, false, checkForLowerbound(key));
+            newLowerBound = checkForLowerbound(borrower.keys.get(keyIndex + 1));
+            parent.updateKeyAt(insideKeyIndex - 1, key, false, checkForLowerbound(key));
         }
-        parent.keys.set(inBetweenKeyIdx, newLowerBound);
+        parent.keys.set(insideKeyIndex, newLowerBound);
 
     }
 
     private static void mergeInternalNodes(InternalNode targetNode, InternalNode sacrificialNode, InternalNode parent,
             int rightPointerIdx,
-            int inBetweenKeyIdx, boolean targetNodeInsufficient) {
+            int insideKeyIndex, boolean targetNodeInsufficient) {
         if (targetNodeInsufficient) {
-            targetNode.keys.add(parent.keys.get(inBetweenKeyIdx));
+            targetNode.keys.add(parent.keys.get(insideKeyIndex));
             targetNode.keys.addAll(sacrificialNode.keys);
             targetNode.getChildren().addAll(sacrificialNode.getChildren());
 
         } else {
-            targetNode.keys.add(0, parent.keys.get(inBetweenKeyIdx));
+            targetNode.keys.add(0, parent.keys.get(insideKeyIndex));
             targetNode.keys.addAll(0, sacrificialNode.keys);
             targetNode.getChildren().addAll(0, sacrificialNode.getChildren());
         }
 
         parent.getChildren().remove(sacrificialNode);
-        parent.keys.remove(inBetweenKeyIdx);
+        parent.keys.remove(insideKeyIndex);
 
         sacrificialNode = null;
     }
 
     private static void mergeLeafNodes(LeafNode targetNode, LeafNode sacrificialNode, InternalNode parent,
-            int rightPointerIdx, int inBetweenKeyIdx, boolean targetNodeInsufficient) {
+            int rightPointerIdx, int insideKeyIndex, boolean targetNodeInsufficient) {
 
         targetNode.keys.addAll(sacrificialNode.keys);
         targetNode.keyAddressMap.putAll(sacrificialNode.keyAddressMap);
@@ -211,64 +211,64 @@ public class BPTFunctions {
         targetNode.setRightSibling(sacrificialNode.getRightSibling());
 
         parent.getChildren().remove(sacrificialNode);
-        parent.keys.remove(inBetweenKeyIdx);
+        parent.keys.remove(insideKeyIndex);
 
         sacrificialNode = null;
 
     }
 
-    private static void moveOneKeyLeafNode(LeafNode donor, LeafNode receiver,
-            boolean donorOnLeft, InternalNode parent,
-            int inBetweenKeyIdx) {
+    private static void moveKeyInLeaf(LeafNode lender, LeafNode borrower,
+            boolean leftLender, InternalNode parent,
+            int insideKeyIndex) {
         Float key;
-        if (donorOnLeft) {
-            Float donorKey = donor.keys.get(donor.keys.size() - 1);
-            receiver.insertToKeyAddressMap(donorKey, donor.getAddressesForKey(donorKey));
-            donor.removeKeyFromMap(donorKey);
+        if (leftLender) {
+            Float keyLender = lender.keys.get(lender.keys.size() - 1);
+            borrower.insertToKeyAddressMap(keyLender, lender.getAddressesForKey(keyLender));
+            lender.removeKeyFromMap(keyLender);
 
-            receiver.insertKeyAt(0, donorKey);
-            donor.keys.remove(donor.keys.size() - 1);
-            key = receiver.keys.get(0);
+            borrower.insertKeyAt(0, keyLender);
+            lender.keys.remove(lender.keys.size() - 1);
+            key = borrower.keys.get(0);
         } else {
-            Float donorKey = donor.keys.get(0);
-            receiver.insertToKeyAddressMap(donorKey, donor.getAddressesForKey(donorKey));
-            donor.removeKeyFromMap(donorKey);
+            Float keyLender = lender.keys.get(0);
+            borrower.insertToKeyAddressMap(keyLender, lender.getAddressesForKey(keyLender));
+            lender.removeKeyFromMap(keyLender);
 
-            receiver.insertKeyAt(receiver.keys.size(), donorKey);
-            donor.keys.remove(0);
-            key = donor.keys.get(0);
+            borrower.insertKeyAt(borrower.keys.size(), keyLender);
+            lender.keys.remove(0);
+            key = lender.keys.get(0);
         }
 
-        if (inBetweenKeyIdx == -1) {
-        } else if (inBetweenKeyIdx >= 0) {
-            if (parent.keys.size() == inBetweenKeyIdx) {
-                parent.keys.set(inBetweenKeyIdx - 1, key);
+        if (insideKeyIndex == -1) {
+        } else if (insideKeyIndex >= 0) {
+            if (parent.keys.size() == insideKeyIndex) {
+                parent.keys.set(insideKeyIndex - 1, key);
 
-                int lastParentChild = receiver.getParent().keys.size() - 1;
-                Float lastParentChildKey = receiver.getParent().getChild(receiver.getParent().keys.size()).keys.get(0);
-                if (!(donor.getParent().getChild(donor.getParent().getChildren().size() - 1).keys.get(0))
+                int lastParentChild = borrower.getParent().keys.size() - 1;
+                Float lastParentChildKey = borrower.getParent().getChild(borrower.getParent().keys.size()).keys.get(0);
+                if (!(lender.getParent().getChild(lender.getParent().getChildren().size() - 1).keys.get(0))
                         .equals(key)) {
-                    receiver.getParent().keys.set(lastParentChild, lastParentChildKey);
+                    borrower.getParent().keys.set(lastParentChild, lastParentChildKey);
                 }
             } else {
-                parent.keys.set(inBetweenKeyIdx, key);
+                parent.keys.set(insideKeyIndex, key);
 
-                if (!(donor.getParent().getChild(inBetweenKeyIdx + 1).keys.get(0)).equals(key)) {
-                    donor.getParent().keys.set(inBetweenKeyIdx,
-                            donor.getParent().getChild(inBetweenKeyIdx + 1).keys.get(0));
+                if (!(lender.getParent().getChild(insideKeyIndex + 1).keys.get(0)).equals(key)) {
+                    lender.getParent().keys.set(insideKeyIndex,
+                            lender.getParent().getChild(insideKeyIndex + 1).keys.get(0));
                 }
             }
         } else {
-            parent.keys.set(inBetweenKeyIdx - 1, key);
+            parent.keys.set(insideKeyIndex - 1, key);
         }
 
-        int pointerIndex = receiver.getIndexOfKey(key, true);
+        int pointerIndex = borrower.getIndexOfKey(key, true);
         int keyIndex = pointerIndex - 1;
 
-        LeafNode LeafNode = (LeafNode) receiver;
+        LeafNode LeafNode = (LeafNode) borrower;
 
         if (LeafNode.keys.size() < (keyIndex + 1))
-            parent.updateKeyAt(inBetweenKeyIdx - 1, parent.getChild(inBetweenKeyIdx).keys.get(0), false,
+            parent.updateKeyAt(insideKeyIndex - 1, parent.getChild(insideKeyIndex).keys.get(0), false,
                     checkForLowerbound(key));
 
     }
