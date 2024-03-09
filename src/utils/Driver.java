@@ -66,22 +66,22 @@ public class Driver {
         long startTime = System.nanoTime();
         ArrayList<Address> addresses = BPTree.getAddresses((float) 500);
         long endTime = System.nanoTime();
-        float totalNumVotes = 0;
+        double averageRating = 0;
         int recordCount = 0;
         ArrayList<Record> result = new ArrayList<>();
         if (addresses != null) {
             for (Address address : addresses) {
                 Record record = storage.getRecord(address);
                 result.add(record);
-                totalNumVotes += record.getNumVotes();
+                averageRating += record.getAverageRating();
                 recordCount++;
             }
         }
         System.out.printf("Number of index nodes accessed by process: %d", helper.getNodeReads());
         System.out.printf("\nNumber of data blocks accessed by process: %d", storage.getBlockAccesses());
         System.out.printf("\n\n(Index Search) Number of records found: %d", recordCount);
-        System.out.printf("\nAverage of NumVotes of returned records: %.2f",
-                recordCount > 0 ? totalNumVotes / recordCount : 0);
+        System.out.printf("\nAverage of averageRatings of returned records: %.2f",
+                recordCount > 0 ? averageRating / recordCount : 0);
         System.out.printf("\n\tRun time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
         startTime = System.nanoTime();
         int blockAccesses = storage.bruteForceSearch(500, 500);
