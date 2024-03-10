@@ -23,9 +23,9 @@ public class LeafNode extends NodeFunctions {
         return this.keyAddressMap.containsKey(key) || this.keys.contains(key) ? keyAddressMap.get(key) : null;
     }
 
-    public ArrayList<Address> getAddressesForKey(Float key) {
-        return keyAddressMap.get(key);
-    }
+    // public ArrayList<Address> getAddressesByKey(Float key) {
+    // return keyAddressMap.get(key);
+    // }
 
     public void addRecord(Float key, Address addr) {
         int n = SizeofNode;
