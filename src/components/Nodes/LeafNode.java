@@ -23,10 +23,6 @@ public class LeafNode extends NodeFunctions {
         return this.keyAddressMap.containsKey(key) || this.keys.contains(key) ? keyAddressMap.get(key) : null;
     }
 
-    // public ArrayList<Address> getAddressesByKey(Float key) {
-    // return keyAddressMap.get(key);
-    // }
-
     public void addRecord(Float key, Address addr) {
         int n = SizeofNode;
         if (this.keys == null) {
@@ -73,7 +69,6 @@ public class LeafNode extends NodeFunctions {
         addresses.clear();
     }
 
-    // Below are all Get and Set
     public LeafNode getRightSibling() {
         return rightSibling;
     }
