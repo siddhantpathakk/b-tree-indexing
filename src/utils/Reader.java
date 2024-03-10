@@ -17,7 +17,7 @@ public class Reader {
     public static void read() {
         String fileSeparator = System.getProperty("file.separator");
         String filePath = new File("").getAbsolutePath();
-        filePath = filePath + fileSeparator + "data" + fileSeparator + "data.tsv";
+        filePath = filePath + fileSeparator + "src" + fileSeparator + "data" + fileSeparator + "data.tsv";
         File file = new File(String.valueOf(filePath));
 
         try {
