@@ -1,11 +1,11 @@
 package components.Database;
 
 public class Record {
-    private String tConst; 
+    private String tConst;
     private float averageRating;
-    private float numVotes; 
+    private float numVotes;
 
-    private static int RECORD_SIZE = 18;
+    private static int SizeOfRecord = 18;
 
     public Record(String tConst, float averageRating, int numVotes) {
         this.tConst = tConst;
@@ -20,7 +20,7 @@ public class Record {
     }
 
     public static int getRecordSize() {
-        return RECORD_SIZE;
+        return SizeOfRecord;
     }
 
     // Getters

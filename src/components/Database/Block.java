@@ -5,9 +5,9 @@ public class Block {
     private int currentRecordCount;
     private Record[] records;
 
-    public Block(int BLOCK_SIZE) {
+    public Block(int blockSize) {
         this.currentRecordCount = 0;
-        maximumRecordCount = BLOCK_SIZE / Record.getRecordSize();
+        maximumRecordCount = blockSize / Record.getRecordSize();
         this.records = new Record[maximumRecordCount];
     }
 

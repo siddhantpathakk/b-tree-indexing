@@ -85,20 +85,20 @@ public class Storage {
         }
     }
 
-    public int bruteForceSearch(int numVotes, int numVotes_upperBound) {
+    public int bruteForceSearch(int numVotes, int maxNumberOfVotes) {
         Record record;
-        float recNumVotes;
-        int blkAccesses = 0;
+        float numVotesInRecord;
+        int numBlockAccess = 0;
         ArrayList<Record> res = new ArrayList<>();
-        for (Integer blkPtr : this.filledBlocks) {
-            blkAccesses++;
-            Block block = this.blocks[blkPtr];
+        for (Integer blockPointer : this.filledBlocks) {
+            numBlockAccess++;
+            Block block = this.blocks[blockPointer];
             int blockSize = block.getCurrentRecordCount();
 
             for (int offset = 0; offset < blockSize; offset++) {
                 record = block.getRecord(offset);
-                recNumVotes = record.getNumVotes();
-                if (recNumVotes >= numVotes && recNumVotes <= numVotes_upperBound) {
+                numVotesInRecord = record.getNumVotes();
+                if (numVotesInRecord >= numVotes && numVotesInRecord <= maxNumberOfVotes) {
                     res.add(record);
                 }
             }
@@ -108,6 +108,6 @@ public class Storage {
         } else {
             System.out.printf("\n(Bruteforce) No. of records found: %d", res.size());
         }
-        return blkAccesses;
+        return numBlockAccess;
     }
 }
