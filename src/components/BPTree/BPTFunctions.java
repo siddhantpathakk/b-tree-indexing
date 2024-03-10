@@ -226,7 +226,7 @@ public class BPTFunctions {
             borrower.insertToKeyAddressMap(keyLender, lender.keyAddressMap.get(keyLender));
             lender.removeKeyFromMap(keyLender);
 
-            borrower.insertKeyAt(0, keyLender);
+            borrower.insertKeyloc(0, keyLender);
             lender.keys.remove(lender.keys.size() - 1);
             key = borrower.keys.get(0);
         } else {
@@ -234,7 +234,7 @@ public class BPTFunctions {
             borrower.insertToKeyAddressMap(keyLender, lender.keyAddressMap.get(keyLender));
             lender.removeKeyFromMap(keyLender);
 
-            borrower.insertKeyAt(borrower.keys.size(), keyLender);
+            borrower.insertKeyloc(borrower.keys.size(), keyLender);
             lender.keys.remove(0);
             key = lender.keys.get(0);
         }
