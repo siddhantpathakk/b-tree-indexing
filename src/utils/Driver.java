@@ -37,9 +37,9 @@ public class Driver {
             experiment5(storage, BPTree);
 
         } catch (InterruptedException e) {
-            System.out.println("User interrupted program, exiting run time");
+            System.out.println("User interrupted program, exiting");
         }
-        System.out.println("\n\n@@@@@ Execution complete @@@@@\n");
+        System.out.println("\n\n@@@@@ Experiments completed @@@@@\n");
     }
 
     public static void experiment1(Storage storage) {
@@ -51,8 +51,7 @@ public class Driver {
     }
 
     public static void experiment2(BPlusTree BPTree) {
-        System.out.println(
-                "\nExperiment 2: build a B+ tree on the attribute \"numVote\" by inserting the records sequentially and report the statistics");
+        System.out.println("\nExperiment 2: build a B+ tree on the attribute \"numVote\" by inserting the records sequentially and report the statistics");
         System.out.println("Parameter n: " + BPlusTree.SizeofNode);
         System.out.printf("Number of Nodes in B+ tree: %d\n", BPTree.countNodes(BPlusTree.getRoot()));
         System.out.printf("Number of Levels in B+ tree: %d\n", BPTree.getDepth(BPlusTree.getRoot()));
@@ -60,8 +59,7 @@ public class Driver {
     }
 
     public static void experiment3(Storage storage, BPlusTree BPTree) {
-        System.out.println(
-                "\nExperiment 3: retrieve those movies with the \"numVotes\" equal to 500 and report the following statistics:");
+        System.out.println("\nExperiment 3: retrieve those movies with the \"numVotes\" equal to 500 and report the following statistics:");
         BPTFunctions helper = new BPTFunctions();
         long startTime = System.nanoTime();
         ArrayList<Address> addresses = BPTree.getAddresses((float) 500);
@@ -80,8 +78,7 @@ public class Driver {
         System.out.printf("Number of index nodes accessed by process: %d", helper.getNodeReads());
         System.out.printf("\nNumber of data blocks accessed by process: %d", storage.getBlockAccesses());
         System.out.printf("\n\n(Index Search) Number of records found: %d", recordCount);
-        System.out.printf("\nAverage of averageRatings of returned records: %.5f",
-                recordCount > 0 ? averageRating / recordCount : 0);
+        System.out.printf("\nAverage of averageRatings of returned records: %.5f", recordCount > 0 ? averageRating / recordCount : 0);
         System.out.printf("\n\tRun time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
         startTime = System.nanoTime();
         int blockAccesses = storage.bruteForceSearch(500, 500);
@@ -109,8 +106,7 @@ public class Driver {
         System.out.printf("Number of index nodes accessed by process: %d", indexCalls);
         System.out.printf("\nNumber of data blocks accessed by process: %d", storage.getBlockAccesses());
         System.out.printf("\n\n(Index Search) Number of records found: %d", recordCount);
-        System.out.printf("\nAverage of averageRatings of returned records: %.5f",
-                recordCount > 0 ? averageRating / recordCount : 0);
+        System.out.printf("\nAverage of averageRatings of returned records: %.5f", recordCount > 0 ? averageRating / recordCount : 0);
         System.out.printf("\n\tRun time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
         startTime = System.nanoTime();
         int blockAccesses = storage.bruteForceSearch(30000, 40000);
@@ -125,23 +121,20 @@ public class Driver {
         ArrayList<Float> keysToRemove = getKeysToRemove(BPlusTree.getRoot(), 1000, 1000);
         ArrayList<Address> addressesToRemove = new ArrayList<Address>();
         for (Float key : keysToRemove) {
-
             addressesToRemove.addAll(BPTree.deleteKeyRecursive(BPlusTree.rootNode, null, -1, -1, key, key));
         }
         long endTime = System.nanoTime();
         System.out.printf("Number of records to delete: %d\n", addressesToRemove.size());
         System.out.printf("Number of Nodes in updated B+ tree: %d\n", BPTree.countNodes(BPlusTree.getRoot()));
         System.out.printf("Number of Levels in updated B+ tree: %d\n", BPTree.getDepth(BPlusTree.getRoot()));
-        System.out.printf("\nContent of the root node of the updated B+ tree(only the keys): %s\n",
-                BPlusTree.getRoot().keys);
+        System.out.printf("\nContent of the root node of the updated B+ tree(only the keys): %s\n", BPlusTree.getRoot().keys);
         System.out.printf("\tRun time: %.3f ms", (endTime - startTime) / 1_000_000.0);
 
         System.out.print("\n\nBrute-force range deletion:");
         startTime = System.nanoTime();
         int bruteForceAccessCount = storage.bruteForceSearch(1000, 1000);
         endTime = System.nanoTime();
-        System.out.printf("\nNumber of data blocks that would be accessed by a brute-force: %d\n",
-                bruteForceAccessCount);
+        System.out.printf("\nNumber of data blocks that would be accessed by a brute-force: %d\n", bruteForceAccessCount);
         System.out.printf("\tRun time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
     }
 

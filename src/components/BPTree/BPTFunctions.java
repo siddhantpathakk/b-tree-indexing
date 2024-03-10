@@ -20,8 +20,7 @@ public class BPTFunctions {
         nodeReads++;
     }
 
-    public static ArrayList<Address> getAddressesForKeysBetween(NodeFunctions node,
-            float minKey, float maxKey) {
+    public static ArrayList<Address> getAddressesForKeysBetween(NodeFunctions node, float minKey, float maxKey) {
         Driver.indexCalls++;
         BPTFunctions.incrementNodeReads();
         if (!node.isLeaf()) {
@@ -51,8 +50,7 @@ public class BPTFunctions {
         }
     }
 
-    public static void fixInvalidTree(NodeFunctions invalidNode, InternalNode parent, int parentPointerIndex,
-            int parentKeyIndex) throws IllegalStateException {
+    public static void fixInvalidTree(NodeFunctions invalidNode, InternalNode parent, int parentPointerIndex, int parentKeyIndex) throws IllegalStateException {
         if (parent == null) {
             fixInvalidRootNode(invalidNode);
         } else if (invalidNode.isLeaf()) {
@@ -77,10 +75,7 @@ public class BPTFunctions {
         }
     }
 
-    private static void fixInvalidLeafNode(NodeFunctions invalidNode,
-            InternalNode parent,
-            int parentPointerIndex,
-            int parentKeyIndex) {
+    private static void fixInvalidLeafNode(NodeFunctions invalidNode, InternalNode parent, int parentPointerIndex, int parentKeyIndex) {
         LeafNode underUtilizedLeaf = (LeafNode) invalidNode;
         LeafNode leftSibling = (LeafNode) underUtilizedLeaf.getLeftSibling();
         LeafNode rightSibling = (LeafNode) underUtilizedLeaf.getRightSibling();
@@ -98,11 +93,7 @@ public class BPTFunctions {
         }
     }
 
-    private static void handleInvalidInternalNode(NodeFunctions invalidNode,
-            InternalNode parent,
-            int parentPointerIndex,
-            int parentKeyIndex) {
-
+    private static void handleInvalidInternalNode(NodeFunctions invalidNode, InternalNode parent, int parentPointerIndex, int parentKeyIndex) {
         NodeFunctions underUtilizedInternalNode = invalidNode;
 
         InternalNode leftInNodeSibling = null;
@@ -141,9 +132,7 @@ public class BPTFunctions {
         }
     }
 
-    private static void moveOneKeyInternalNode(InternalNode lender, InternalNode borrower,
-            boolean leftLender, InternalNode parent,
-            int insideKeyIndex) {
+    private static void moveOneKeyInternalNode(InternalNode lender, InternalNode borrower,boolean leftLender, InternalNode parent, int insideKeyIndex) {
         Float key;
 
         if (leftLender) {
@@ -179,9 +168,7 @@ public class BPTFunctions {
 
     }
 
-    private static void mergeInternalNodes(InternalNode targetNode, InternalNode sacrificialNode, InternalNode parent,
-            int rightPointerIdx,
-            int insideKeyIndex, boolean targetNodeInsufficient) {
+    private static void mergeInternalNodes(InternalNode targetNode, InternalNode sacrificialNode, InternalNode parent, int rightPointerIdx, int insideKeyIndex, boolean targetNodeInsufficient) {
         if (targetNodeInsufficient) {
             targetNode.keys.add(parent.keys.get(insideKeyIndex));
             targetNode.keys.addAll(sacrificialNode.keys);
@@ -199,8 +186,7 @@ public class BPTFunctions {
         sacrificialNode = null;
     }
 
-    private static void mergeLeafNodes(LeafNode targetNode, LeafNode sacrificialNode, InternalNode parent,
-            int rightPointerIdx, int insideKeyIndex, boolean targetNodeInsufficient) {
+    private static void mergeLeafNodes(LeafNode targetNode, LeafNode sacrificialNode, InternalNode parent, int rightPointerIdx, int insideKeyIndex, boolean targetNodeInsufficient) {
 
         targetNode.keys.addAll(sacrificialNode.keys);
         targetNode.keyAddressMap.putAll(sacrificialNode.keyAddressMap);
@@ -217,9 +203,7 @@ public class BPTFunctions {
 
     }
 
-    private static void moveKeyInLeaf(LeafNode lender, LeafNode borrower,
-            boolean leftLender, InternalNode parent,
-            int insideKeyIndex) {
+    private static void moveKeyInLeaf(LeafNode lender, LeafNode borrower, boolean leftLender, InternalNode parent, int insideKeyIndex) {
         Float key;
         if (leftLender) {
             Float keyLender = lender.keys.get(lender.keys.size() - 1);
