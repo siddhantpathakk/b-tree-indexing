@@ -73,7 +73,7 @@ public class LeafNode extends NodeFunctions {
         addresses.clear();
     }
 
-    // GETTERS AND SETTERS
+    // Below are all Get and Set
     public LeafNode getRightSibling() {
         return rightSibling;
     }

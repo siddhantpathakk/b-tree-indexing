@@ -80,7 +80,7 @@ public class Driver {
         System.out.printf("Number of index nodes accessed by process: %d", helper.getNodeReads());
         System.out.printf("\nNumber of data blocks accessed by process: %d", storage.getBlockAccesses());
         System.out.printf("\n\n(Index Search) Number of records found: %d", recordCount);
-        System.out.printf("\nAverage of averageRatings of returned records: %.2f",
+        System.out.printf("\nAverage of averageRatings of returned records: %.5f",
                 recordCount > 0 ? averageRating / recordCount : 0);
         System.out.printf("\n\tRun time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
         startTime = System.nanoTime();
@@ -93,7 +93,7 @@ public class Driver {
     public static void experiment4(Storage storage, BPlusTree BPTree) {
         System.out.println("\n\nEXPERIMENT 4: Retrieve those records with 30,000 >= \"numVotes\" <= 40,000:");
         long startTime = System.nanoTime();
-        ArrayList<Address> addresses = BPTFunctions.getAddressesForKeysBetween(BPlusTree.getRoot(), 30_000, 40_000);
+        ArrayList<Address> addresses = BPTFunctions.getAddressesForKeysBetween(BPlusTree.getRoot(), 30000, 40000);
         long endTime = System.nanoTime();
         int recordCount = 0;
         double averageRating = 0;
@@ -109,7 +109,7 @@ public class Driver {
         System.out.printf("Number of index nodes accessed by process: %d", indexCalls);
         System.out.printf("\nNumber of data blocks accessed by process: %d", storage.getBlockAccesses());
         System.out.printf("\n\n(Index Search) Number of records found: %d", recordCount);
-        System.out.printf("\nAverage of averageRatings of returned records: %.2f",
+        System.out.printf("\nAverage of averageRatings of returned records: %.5f",
                 recordCount > 0 ? averageRating / recordCount : 0);
         System.out.printf("\n\tRun time: %.3f ms\n", (endTime - startTime) / 1_000_000.0);
         startTime = System.nanoTime();

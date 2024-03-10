@@ -160,7 +160,7 @@ public class NodeFunctions {
         }
     }
 
-    // GETTERS AND SETTERS + misc and helper
+    // Below are Get, Set, Misc & Helper 
     public int getMinLeafNodeSize() {
         return this.minLeafNodeSize;
     }

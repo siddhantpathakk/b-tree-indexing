@@ -1,9 +1,9 @@
 package components.Database;
 
 public class Record {
-    private String tConst; // 10 bytes
-    private float averageRating; // 4 bytes
-    private float numVotes; // 4 bytes
+    private String tConst; 
+    private float averageRating;
+    private float numVotes; 
 
     private static int RECORD_SIZE = 18;
 
@@ -13,7 +13,6 @@ public class Record {
         this.numVotes = numVotes;
     }
 
-    // This is assuming all records must be NOT NULL
     public Record() {
         this.tConst = "";
         this.averageRating = 0;
