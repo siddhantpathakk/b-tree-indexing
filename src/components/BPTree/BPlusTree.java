@@ -83,7 +83,7 @@ public class BPlusTree {
                 return null;
             }
 
-            addressesToDelete.addAll(leafNode.getAddressesForKey(key));
+            addressesToDelete.addAll(leafNode.keyAddressMap.get(key));
             leafNode.keys.remove(keyIndex);
             leafNode.removeKeyFromMap(key);
 
@@ -125,7 +125,7 @@ public class BPlusTree {
         if (node.isLeaf()) {
             int pointerIndex = node.getIndexOfKey(key, false);
             if (pointerIndex >= 0 && pointerIndex < node.keys.size() && key.equals(node.keys.get(pointerIndex))) {
-                return ((LeafNode) node).getAddressesForKey(key);
+                return ((LeafNode) node).keyAddressMap.get(key);
             }
             return null;
         } else {

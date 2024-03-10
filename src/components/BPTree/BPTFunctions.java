@@ -43,7 +43,7 @@ public class BPTFunctions {
                 if (leafNode.keys.get(pointer) > maxKey)
                     break;
                 Float key = leafNode.keys.get(pointer);
-                addresses.addAll(leafNode.getAddressesForKey(key));
+                addresses.addAll(leafNode.keyAddressMap.get(key));
                 pointer++;
             }
             return (addresses.isEmpty() ? null : addresses);
@@ -207,18 +207,18 @@ public class BPTFunctions {
         Float key;
         if (leftLender) {
             Float keyLender = lender.keys.get(lender.keys.size() - 1);
-            borrower.insertToKeyAddressMap(keyLender, lender.getAddressesForKey(keyLender));
+            borrower.insertToKeyAddressMap(keyLender, lender.keyAddressMap.get(keyLender));
             lender.removeKeyFromMap(keyLender);
 
-            borrower.insertKeyAt(0, keyLender);
+            borrower.insertKeyloc(0, keyLender);
             lender.keys.remove(lender.keys.size() - 1);
             key = borrower.keys.get(0);
         } else {
             Float keyLender = lender.keys.get(0);
-            borrower.insertToKeyAddressMap(keyLender, lender.getAddressesForKey(keyLender));
+            borrower.insertToKeyAddressMap(keyLender, lender.keyAddressMap.get(keyLender));
             lender.removeKeyFromMap(keyLender);
 
-            borrower.insertKeyAt(borrower.keys.size(), keyLender);
+            borrower.insertKeyloc(borrower.keys.size(), keyLender);
             lender.keys.remove(0);
             key = lender.keys.get(0);
         }

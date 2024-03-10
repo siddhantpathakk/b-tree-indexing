@@ -29,11 +29,7 @@ public class NodeFunctions {
         this.minInternalNodeSize = SizeofNode / 2;
     }
 
-    public int getIndexOfKey(Float key, boolean upperBound) {
-        return binarySearchKeyIndex(0, keys.size() - 1, key, upperBound);
-    }
-
-    public void insertKeyAt(int index, Float key) {
+    public void insertKeyloc(int index, Float key) {
         keys.add(index, key);
     }
 
@@ -45,7 +41,7 @@ public class NodeFunctions {
         keys.add(index, key);
     }
 
-    public void insertChildInOrder(InternalNode parent, InternalNode child) {
+    public void insertChildOrder(InternalNode parent, InternalNode child) {
         int index = 0;
         Float childToInsert = child.keys.get(0);
         while (index < parent.keys.size() && parent.keys.get(index) < childToInsert) {
@@ -53,6 +49,42 @@ public class NodeFunctions {
         }
         parent.children.add(index + 1, child);
     }
+    public void insertNewNode(LeafNode newNode) {
+        int index = 0;
+        boolean insertedNode = false;
+
+        try {
+            for (NodeFunctions currentNode : this.getParent().getChildren()) {
+                if (newNode.keys.get(newNode.keys.size() - 1) < currentNode.keys.get(0)) {
+                    this.getParent().getChildren().add(index, newNode);
+                    this.getParent().keys.add(index - 1, newNode.keys.get(0));
+                    insertedNode = true;
+                    break;
+                }
+                index++;
+            }
+
+            if (!insertedNode) {
+                this.getParent().getChildren().add(newNode);
+                this.getParent().keys.add(newNode.keys.get(0));
+            }
+
+        } catch (Exception e) {
+            this.getParent().getChildren().add(newNode);
+            this.getParent().keys.add(newNode.keys.get(0));
+        }
+
+        newNode.setParent(this.getParent());
+
+        if (this.getParent().keys.size() > SizeofNode) {
+            this.getParent().splitInternal();
+        }
+    }
+
+    public int getIndexOfKey(Float key, boolean upperBound) {
+        return binarySearchKeyIndex(0, keys.size() - 1, key, upperBound);
+    }
+
 
     public void updateKeyAt(int keyIndex, Float newKey, boolean isLeafUpdated, Float lowerbound) {
         if (keyIndex >= 0 && keyIndex < keys.size() && !isLeafUpdated) {
@@ -88,38 +120,6 @@ public class NodeFunctions {
         return keys.size() - 1 >= (maxKeyCount + 1) / 2;
     }
 
-    public void insertNewNode(LeafNode newNode) {
-        int index = 0;
-        boolean insertedNode = false;
-
-        try {
-            for (NodeFunctions currentNode : this.getParent().getChildren()) {
-                if (newNode.keys.get(newNode.keys.size() - 1) < currentNode.keys.get(0)) {
-                    this.getParent().getChildren().add(index, newNode);
-                    this.getParent().keys.add(index - 1, newNode.keys.get(0));
-                    insertedNode = true;
-                    break;
-                }
-                index++;
-            }
-
-            if (!insertedNode) {
-                this.getParent().getChildren().add(newNode);
-                this.getParent().keys.add(newNode.keys.get(0));
-            }
-
-        } catch (Exception e) {
-            this.getParent().getChildren().add(newNode);
-            this.getParent().keys.add(newNode.keys.get(0));
-        }
-
-        newNode.setParent(this.getParent());
-
-        if (this.getParent().keys.size() > SizeofNode) {
-            this.getParent().splitInternal();
-        }
-    }
-
     public void splitLeaf(Float key, Address address) {
 
         LeafNode newNode = this.getNewLeaf(key, address);
@@ -138,7 +138,7 @@ public class NodeFunctions {
     public void splitInternal() {
         InternalNode sibling = this.getNewSibling();
         if (this.getParent() != null) {
-            insertChildInOrder(this.getParent(), sibling);
+            insertChildOrder(this.getParent(), sibling);
             sibling.setParent(this.getParent());
             insertKeyInOrder(this.getParent().keys, sibling.keys.get(0));
             sibling.keys.remove(0);
@@ -160,7 +160,6 @@ public class NodeFunctions {
         }
     }
 
-    // Below are Get, Set, Misc & Helper 
     public int getMinLeafNodeSize() {
         return this.minLeafNodeSize;
     }
